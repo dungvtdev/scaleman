@@ -1,0 +1,32 @@
+bootstrap:
+    role="tabpanel"
+
+
+angularjs:
+    https://thinkster.io/egghead/understanding-isolate-scope
+
+    link function as an angular controller function
+    https://docs.angularjs.org/api/ng/service/$compile#-link-
+
+    'transclusion', which is an esoteric computer science term that basically means 
+        'to include one document inside another'.
+
+    lam ro hon:
+    controllerAs: 'tabset' allows us to bind properties directly to the controller object 
+        using this and have them accessible via tabset in the template. This removes the 
+        controller's dependency on the $scope service and is generally the recommended way 
+        to use controllers in Angular.
+
+    @, ^, =, &
+        The '@' symbol is a special symbol in Angular that means this scope property should be a string
+
+    ng-class, ng-show, ng-click="value" se tim value trong scope
+
+    attr.$observe
+        attr.$observe('disable', function(value){
+            scope.disabled = (value !== 'false')
+        })
+
+    $observe vs $watch
+
+    angular.forEach(list, function(item){})
