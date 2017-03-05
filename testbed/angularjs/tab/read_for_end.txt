@@ -30,3 +30,8 @@ angularjs:
     $observe vs $watch
 
     angular.forEach(list, function(item){})
+
+    for each directive controller function is executed after compilation, but before pre-link in a local 
+    DOM tree branch. Also controller and pre-link functions are executed traversing the local DOM branch 
+    in a top-down manner. After that post-link is executed in a bottom-up manner.
+        http://stackoverflow.com/questions/15676614/angularjs-link-vs-compile-vs-controller
