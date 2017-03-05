@@ -1,0 +1,29 @@
+<html>
+
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.0-rc.0/angular.min.js"></script>
+</head>
+
+<body ng-app = "app">
+    <div ng-controller="MainCtrl as main">
+        {{ main.title }}
+        <button ng-click="main.change()">Click</button>
+    </div>
+
+    <script>
+        var app = angular.module('app', []);
+
+        app.controller("MainCtrl", function($scope){
+            this.title = 'Main';
+            $scope.$watch('main.title', function(newVal, oldVal){
+                console.log("title change");
+            });
+
+            this.change = angular.bind(this, function(){
+                this.title = "hehehe";
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,34 @@
+<html>
+
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.0-rc.0/angular.min.js"></script>
+</head>
+
+<body ng-app = "app">
+    <div ng-controller="MainCtrl">
+        {{ title }}
+        <div ng-controller="AnotherCtrl">
+            Scope title: {{ title }} Parent title: {{ $parent.title }}
+            <div ng-controller="YetAnotherCtrl">
+                {{ title2 }} Parent title: {{ $parent.title }} Parent parent title: {{ $parent.$parent.title }}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var app = angular.module('app', []);
+
+        app.controller("MainCtrl", function($scope){
+            $scope.title = 'Main';
+        })
+        .controller("AnotherCtrl", function($scope){
+            $scope.title ="Ano";
+            $scope.title2 = "title2";
+        })
+        .controller("YetAnotherCtrl", function($scope){
+            $scope.title = "YetAno";
+        });
+    </script>
+</body>
+
+</html>
