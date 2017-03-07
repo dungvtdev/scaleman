@@ -1,0 +1,42 @@
+<html>
+
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.0-rc.0/angular.min.js"></script>
+</head>
+
+<body>
+    <div ng-app="phoneApp">
+        <div ng-controller="AppController">
+            <phone number="network" network="network" make-call="leaveVoicemail(number, message)"></phone>
+            <phone number="867-5309" network="network" make-call="leaveVoicemail(number, message)"></phone>
+            <phone number="911" network="network" make-call="leaveVoicemail(number, message)"></phone>
+        </div>
+    </div>
+
+    <script>
+        app = angular.module("phoneApp" ,[]);
+        app.controller('AppController', function ($scope) {
+            $scope.leaveVoicemail = function (number, message) {
+                alert('Number: ' + number + ' said: ' + message);
+            };
+        });
+
+        app.directive('phone', function () {
+            return {
+                restrict: 'E',
+                scope: {
+                    number: '@',
+                    network: '=',
+                    makeCall: '&'
+                },
+                templateUrl: 'phone.html',
+                link: function (scope) {
+                    scope.networks = ["Verizon", "AT&T", "Sprint"];
+                    scope.network = scope.networks[0];
+                }
+            };
+        });
+    </script>
+</body>
+
+</html>
