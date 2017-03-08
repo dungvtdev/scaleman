@@ -29,11 +29,33 @@
                 element: graphEl,
                 width: attrs.width,
                 height: attrs.height,
-                series: [{data:vm.data, color:"#646464", name:"test"}],
+                series: [{data:vm.data, color:"red", name:"test"}],
                 renderer: vm.renderer
             });
 
             vm.graph.render();
+
+            // x axis
+            var time = new Rickshaw.Fixtures.Time();
+
+            var xAxis = new Rickshaw.Graph.Axis.Time({
+                graph: vm.graph,
+            });
+
+            xAxis.render();
+
+            // y axis
+            var yAxis = new Rickshaw.Graph.Axis.Y({
+                graph: vm.graph
+            });
+
+            // hover
+            var hoverDetail = new Rickshaw.Graph.HoverDetail({
+                graph: vm.graph,
+                xFormatter: function(x){
+                    return new Date(x*1000).toString();
+                }
+            });
         }
 
         RickshawChartController.$inject = ['$interval'];
@@ -57,6 +79,7 @@
                 random.removeData(data);
                 random.addData(data);
                 UpdateGraph();
+                // console.log(data[data.length-1]);
             }
 
             function UpdateGraph(){

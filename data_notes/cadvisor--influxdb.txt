@@ -1,0 +1,175 @@
+> show tag keys
+name: cpu_usage_per_cpu
+-----------------------
+tagKey
+container_name
+instance
+machine
+
+name: cpu_usage_system
+----------------------
+tagKey
+container_name
+machine
+
+name: cpu_usage_total
+---------------------
+tagKey
+container_name
+machine
+
+name: cpu_usage_user
+--------------------
+tagKey
+container_name
+machine
+
+name: fs_limit
+--------------
+tagKey
+container_name
+device
+machine
+type
+
+name: fs_usage
+--------------
+tagKey
+container_name
+device
+machine
+type
+
+name: load_average
+------------------
+tagKey
+container_name
+machine
+
+name: memory_usage
+------------------
+tagKey
+container_name
+machine
+
+name: memory_working_set
+------------------------
+tagKey
+container_name
+machine
+
+name: rx_bytes
+--------------
+tagKey
+container_name
+machine
+
+name: rx_errors
+---------------
+tagKey
+container_name
+machine
+
+name: tx_bytes
+--------------
+tagKey
+container_name
+machine
+
+name: tx_errors
+---------------
+tagKey
+container_name
+machine
+
+
+
+
+
+> show measurements
+name: measurements
+------------------
+name
+cpu_usage_per_cpu
+cpu_usage_system
+cpu_usage_total
+cpu_usage_user
+fs_limit
+fs_usage
+load_average
+memory_usage
+memory_working_set
+rx_bytes
+rx_errors
+tx_bytes
+tx_errors
+
+
+
+
+
+name: cpu_usage_per_cpu
+fieldKey fieldType
+-------- ---------
+value    integer
+
+name: cpu_usage_system
+fieldKey fieldType
+-------- ---------
+value    integer
+
+name: cpu_usage_total
+fieldKey fieldType
+-------- ---------
+value    integer
+
+name: cpu_usage_user
+fieldKey fieldType
+-------- ---------
+value    integer
+
+name: fs_limit
+fieldKey fieldType
+-------- ---------
+value    integer
+
+name: fs_usage
+fieldKey fieldType
+-------- ---------
+value    integer
+
+name: load_average
+fieldKey fieldType
+-------- ---------
+value    integer
+
+name: memory_usage
+fieldKey fieldType
+-------- ---------
+value    integer
+
+name: memory_working_set
+fieldKey fieldType
+-------- ---------
+value    integer
+
+name: rx_bytes
+fieldKey fieldType
+-------- ---------
+value    integer
+
+name: rx_errors
+fieldKey fieldType
+-------- ---------
+value    integer
+
+name: tx_bytes
+fieldKey fieldType
+-------- ---------
+value    integer
+
+name: tx_errors
+fieldKey fieldType
+-------- ---------
+value    integer
+
