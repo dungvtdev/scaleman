@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Scale man visualize</title>
+
+    <base href="/" />
+
+    <link rel="stylesheet" href="lib/bower_components/rickshaw/rickshaw.css" />
+
+
+    <script src="lib/bower_components/angular/angular.min.js"></script>
+    <script src="lib/bower_components/rickshaw/vendor/d3.v3.js"></script>
+    <script src="lib/bower_components/rickshaw/rickshaw.js"></script>
+
+    <script src="app/smv.module.js"></script>
+    <script src="app/smv.config.js"></script>
+    <script src="app/components/components.module.js"></script>
+    <script src="app/components/chart/chart.module.js"></script>
+    <script src="app/components/chart/rickshaw-chart.directive.js"></script>
+    <script src="app/components/chart/data/data.module.js"></script>
+    <script src="app/components/chart/data/data_mock.js"></script>
+
+</head>
+
+<body ng-app="smv">
+    <rickshaw-chart width=500 height=300 renderer="line">
+
+    </rickshaw-chart>
+</body>
+
+</html>
