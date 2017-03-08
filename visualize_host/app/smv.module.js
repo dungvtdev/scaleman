@@ -3,6 +3,8 @@
 
     angular
         .module("smv", [
-            "smv.components"
+            "smv.components",
+            "smv.data",
+            "smv.core",
         ]);
 })();
