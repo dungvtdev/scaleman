@@ -1,12 +1,17 @@
-(function(){
+(function () {
     'use strict';
 
-    angular.module('smv')
-        .config(influxdbConfig);
+    angular.module('smv').constant("CONFIG", getConfig());
 
-    influxdbConfig.$inject = ["InfluxdbDispatcherProvider"];
+    var configData = {
+        visualize_interval: 3000,
+    };
 
-    function influxdbConfig(InfluxdbDispatcherProvider){
-        InfluxdbDispatcherProvider.interval = 3000;
+    function getConfig() {
+        return {
+            value: function(key){
+                return configData[key];
+            },
+        }
     }
 })();

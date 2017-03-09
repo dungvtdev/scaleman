@@ -1,20 +1,17 @@
 (function(){
     angular.module('smv.data.influxdb')
-        .provider("InfluxdbDispatcher", InfluxdbDispatcher);
+        .factory("InfluxdbDispatcher", InfluxdbDispatcher);
 
-    InfluxdbDispatcher.$inject = ["$interval"];
+    InfluxdbDispatcher.$inject = ["$interval", "CONFIG"];
 
-    function InfluxdbDispatcher($interval){
-        this.interval = 1000;
-
+    function InfluxdbDispatcher($interval, CONFIG){
         var service = {
             register: registerFn,
             unregister: unregisterFn,
         }
+        return service;
 
-        this.$get = function(){
-            return service;
-        }
+        this.interval = CONFIG.value("visualize_interval") || 1000;
 
         /**
          * object

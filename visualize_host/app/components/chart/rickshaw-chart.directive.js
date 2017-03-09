@@ -63,6 +63,8 @@
         function RickshawChartController($interval){
             var vm = this;
 
+            vm.name = "test name";
+
             var data = [[]];
             var random = new Rickshaw.Fixtures.RandomData(150);
 

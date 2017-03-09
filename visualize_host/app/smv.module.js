@@ -4,7 +4,7 @@
     angular
         .module("smv", [
             "smv.components",
-            "smv.data",
             "smv.core",
+            "smv.data",
         ]);
 })();
