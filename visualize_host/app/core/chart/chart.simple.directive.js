@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    angular.module('smv.components.chart')
+    angular.module('smv.core.chart')
         .directive('chartSimple', ChartSimple);
 
     ChartSimple.$inject = ["$interval"];

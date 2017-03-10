@@ -2,5 +2,5 @@
     'use strict';
 
     angular
-        .module('smv.data.influxdb',[]);
+        .module('smv.core.data.influxdb',[]);
 })();

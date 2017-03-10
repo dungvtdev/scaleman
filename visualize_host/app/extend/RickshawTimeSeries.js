@@ -2,8 +2,8 @@ Rickshaw.namespace('Rickshaw.Series.RealTimeSeries');
 
 Rickshaw.Series.RealTimeSeries = Rickshaw.Class.create(Rickshaw.Series.FixedDuration, {
     /**
-     * data []
-     *      {name:[{x, y}]}
+     * data [{name:[{x, y}]}]
+     *      
      */
 
     addData: function ($super, data) {

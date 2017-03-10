@@ -2,5 +2,8 @@
     'use strict';
 
     angular
-        .module('smv.core',[]);
+        .module('smv.core',[
+            'smv.core.data',
+            'smv.core.chart',
+        ]);
 })();

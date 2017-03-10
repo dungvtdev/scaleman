@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    angular.module('smv.data.influxdb')
+    angular.module('smv.core.data.influxdb')
         .factory('Influxdb', Influxdb);
 
     Influxdb.$inject = ["$http", "HttpException"];

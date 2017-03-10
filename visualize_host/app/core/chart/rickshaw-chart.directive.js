@@ -2,13 +2,12 @@
     'use strict';
 
     angular
-        .module('smv.components.chart')
+        .module('smv.core.chart')
         .directive("rickshawChart", RickshawChart);
 
 /**
  * ham getData return array [object]
- *      name: name series
- *      values[]
+ *      name: [x,y]
  */
     function RickshawChart() {
         var directive = {
@@ -17,6 +16,7 @@
                 renderer: '@',
                 type: "@",
                 getData: "&",
+                name: '@'
             },
             template: ['<div></div>',
             ].join(""),
@@ -31,7 +31,7 @@
 
         function realtimeTypeConfig(scope, element, attrs) {
 
-            scope.$watch(scope.getData(), function(newVal, oldVal){
+            scope.$watch(scope.getData({name: scope.name}), function(newVal, oldVal){
                 if(newVal!==oldVal){
                     updateData(newVal);
                 }
@@ -51,12 +51,7 @@
                 element: graphEl,
                 width: attrs.width,
                 height: attrs.height,
-                series: new Rickshaw.Series.FixedDuration([{ name: "one" }],
-                    undefined, {
-                        timeInterval: timeInterval,
-                        maxDataPoints: maxDataPoints,
-                        timeBase: new Date().getTime() / 1000
-                    }),
+                series: Rickshaw.Series.RealTimeSeries.create([{name:"default"}], undefined, maxDataPoints),
                 renderer: "area"
             });
 

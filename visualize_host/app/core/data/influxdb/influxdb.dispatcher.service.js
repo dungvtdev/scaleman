@@ -1,5 +1,5 @@
 (function(){
-    angular.module('smv.data.influxdb')
+    angular.module('smv.core.data.influxdb')
         .factory("InfluxdbDispatcher", InfluxdbDispatcher);
 
     InfluxdbDispatcher.$inject = ["$interval", "CONFIG"];

@@ -2,5 +2,5 @@
     'use strict'
 
     angular
-        .module("smv.components.chart", [])
+        .module("smv.core.chart", [])
 })();
