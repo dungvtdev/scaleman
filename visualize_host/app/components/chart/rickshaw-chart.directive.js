@@ -5,11 +5,18 @@
         .module('smv.components.chart')
         .directive("rickshawChart", RickshawChart);
 
+/**
+ * ham getData return array [object]
+ *      name: name series
+ *      values[]
+ */
     function RickshawChart() {
         var directive = {
             restrict: 'E',
             scope: {
                 renderer: '@',
+                type: "@",
+                getData: "&",
             },
             template: ['<div></div>',
             ].join(""),
@@ -18,69 +25,46 @@
         return directive;
 
         function linkFn(scope, element, attrs) {
-            var graph = null;
-            var graphData=[];
-            if (scope.dataSrc === "eventUpdateType") {
-                scope.$watch(scope.chartDataUpdate, function (newVal, oldVal) {
-                    if(!graph)
-                        initGraph(scope.chartDataUpdate);
-                    else
-                        updateGraph(scope.chartDataUpdate);
-                });
-            }
+            if (scope.type === "realTime")
+                realtimeTypeConfig(scope, element, attrs);
+        }
 
-            function initGraph(data) {
-                var graphEl = element.children()[0];
-                var palette = new Rickshaw.Color.Palette({scheme: 'classic9'});
+        function realtimeTypeConfig(scope, element, attrs) {
 
-                graphData = data;
-
-                var series = graphData.map(function(el){
-                    return {
-                        data: el.data,
-                        name: el.name,
-                        color: palette.color()
-                    }
-                });
-                graph = new Rickshaw.Graph({
-                    element: graphEl,
-                    width: attrs.width,
-                    height: attrs.height,
-                    series: series,
-                    renderer: scope.render
-                });
-                graph.render();
-
-                // x axis
-                var time = new Rickshaw.Fixtures.Time();
-
-                var xAxis = new Rickshaw.Graph.Axis.Time({
-                    graph: graph,
-                });
-
-                xAxis.render();
-
-                // y axis
-                var yAxis = new Rickshaw.Graph.Axis.Y({
-                    graph: graph
-                });
-
-                // hover
-                var hoverDetail = new Rickshaw.Graph.HoverDetail({
-                    graph: graph,
-                    xFormatter: function (x) {
-                        return new Date(x * 1000).toString();
-                    }
-                });
-            }
-
-            function updateGraph(data){
-                if(!data)
-                    return;
-
-                for(var i=0;i<graphData.length;i++){
-
+            scope.$watch(scope.getData(), function(newVal, oldVal){
+                if(newVal!==oldVal){
+                    updateData(newVal);
                 }
+            });
+
+            var graphEl = element.children()[0];
+
+            var timeInterval = 1000;
+
+            var initData = getData();
+            if(initData && initData.interval)
+                timeInterval = initData.interval;
+
+            var maxDataPoints = attrs.maxDataPoints || 100;
+
+            var graph = new Rickshaw.Graph({
+                element: graphEl,
+                width: attrs.width,
+                height: attrs.height,
+                series: new Rickshaw.Series.FixedDuration([{ name: "one" }],
+                    undefined, {
+                        timeInterval: timeInterval,
+                        maxDataPoints: maxDataPoints,
+                        timeBase: new Date().getTime() / 1000
+                    }),
+                renderer: "area"
+            });
+
+            graph.render();
+
+            function updateData(newData){
+                graph.series.addData(data);
+                graph.render();
             }
         }
     }

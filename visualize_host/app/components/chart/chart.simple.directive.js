@@ -25,13 +25,7 @@
                 element: graphEl,
                 width: attrs.width,
                 height: attrs.height,
-                series: new Rickshaw.Series.FixedDuration([{name:"one"}],
-                    undefined, {
-                        timeInterval: 3000,
-                        maxDataPoints: 100,
-                        timeBase: new Date().getTime() / 1000
-                    }),
-                renderer: "area"
+                series: Rickshaw.Series.RealTimeSeries.create([{name:"one"}], undefined, 50),
             });
 
             graph.render();
@@ -51,14 +45,13 @@
                 graph.series.addData(data);
                 graph.render();
 
-            }, 1000);
+            }, 500);
 
             function getData(){
-                var data = { one: Math.floor(Math.random() * 40) + 120 };
-
-                var randInt = Math.floor(Math.random() * 100);
-                data.two = (Math.sin(i++ / 40) + 4) * (randInt + 400);
-                data.three = randInt + 300;
+                var data = { one: [
+                    {y:Math.floor(Math.random() * 40) + 120, x: new Date().getTime()/1000},
+                    {y:Math.floor(Math.random() * 40) + 120, x: new Date().getTime()/1000+0.5},
+                    ]};
 
                 return data;
             }
