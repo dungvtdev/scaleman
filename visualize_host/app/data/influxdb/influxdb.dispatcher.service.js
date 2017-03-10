@@ -15,9 +15,8 @@
 
         /**
          * object
-         * callbackfn array [time, value]
-         * measurements = []
-         * tab = []
+         * onData array [time, value]
+         * series[{measurement, tag}]
          * future: nhieu series cho 1 object
          */
         var registers = [];

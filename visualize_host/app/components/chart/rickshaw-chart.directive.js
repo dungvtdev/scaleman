@@ -10,83 +10,77 @@
             restrict: 'E',
             scope: {
                 renderer: '@',
-                getData: '&',
-                interval: '=',
             },
-            controllerAs: 'vm',
-            controller: RickshawChartController,
-            bindToController: true,
             template: ['<div></div>',
-                      ].join(""),
+            ].join(""),
             link: linkFn
         };
         return directive;
 
-        function linkFn(scope, element, attrs, vm){
-            var graphEl = element.children()[0];
+        function linkFn(scope, element, attrs) {
+            var graph = null;
+            var graphData=[];
+            if (scope.dataSrc === "eventUpdateType") {
+                scope.$watch(scope.chartDataUpdate, function (newVal, oldVal) {
+                    if(!graph)
+                        initGraph(scope.chartDataUpdate);
+                    else
+                        updateGraph(scope.chartDataUpdate);
+                });
+            }
 
-            vm.graph = new Rickshaw.Graph({
-                element: graphEl,
-                width: attrs.width,
-                height: attrs.height,
-                series: [{data:vm.data, color:"red", name:"test"}],
-                renderer: vm.renderer
-            });
+            function initGraph(data) {
+                var graphEl = element.children()[0];
+                var palette = new Rickshaw.Color.Palette({scheme: 'classic9'});
 
-            vm.graph.render();
+                graphData = data;
 
-            // x axis
-            var time = new Rickshaw.Fixtures.Time();
+                var series = graphData.map(function(el){
+                    return {
+                        data: el.data,
+                        name: el.name,
+                        color: palette.color()
+                    }
+                });
+                graph = new Rickshaw.Graph({
+                    element: graphEl,
+                    width: attrs.width,
+                    height: attrs.height,
+                    series: series,
+                    renderer: scope.render
+                });
+                graph.render();
 
-            var xAxis = new Rickshaw.Graph.Axis.Time({
-                graph: vm.graph,
-            });
+                // x axis
+                var time = new Rickshaw.Fixtures.Time();
 
-            xAxis.render();
+                var xAxis = new Rickshaw.Graph.Axis.Time({
+                    graph: graph,
+                });
 
-            // y axis
-            var yAxis = new Rickshaw.Graph.Axis.Y({
-                graph: vm.graph
-            });
+                xAxis.render();
 
-            // hover
-            var hoverDetail = new Rickshaw.Graph.HoverDetail({
-                graph: vm.graph,
-                xFormatter: function(x){
-                    return new Date(x*1000).toString();
+                // y axis
+                var yAxis = new Rickshaw.Graph.Axis.Y({
+                    graph: graph
+                });
+
+                // hover
+                var hoverDetail = new Rickshaw.Graph.HoverDetail({
+                    graph: graph,
+                    xFormatter: function (x) {
+                        return new Date(x * 1000).toString();
+                    }
+                });
+            }
+
+            function updateGraph(data){
+                if(!data)
+                    return;
+
+                for(var i=0;i<graphData.length;i++){
+
                 }
-            });
-        }
-
-        RickshawChartController.$inject = ['$interval'];
-
-        function RickshawChartController($interval){
-            var vm = this;
-
-            vm.name = "test name";
-
-            var data = [[]];
-            var random = new Rickshaw.Fixtures.RandomData(150);
-
-            for(var i =0;i<150;i++){
-                random.addData(data);
-            }
-            vm.interval = vm.interval || 3000;
-
-            vm.data = data[0];
-
-            $interval(Redraw, vm.interval, 0, false);
-
-            function Redraw(){
-                random.removeData(data);
-                random.addData(data);
-                UpdateGraph();
-                // console.log(data[data.length-1]);
-            }
-
-            function UpdateGraph(){
-                if(vm.graph)
-                    vm.graph.update();
             }
         }
     }

@@ -1,37 +1,59 @@
-(function(){
+(function () {
     'use strict';
 
     angular.module('smv.components.chart.data')
         .directive('influxdbData', InfluxdbData);
 
-    function InfluxdbData(){
-        return{
+    InfluxdbData.$inject = ["InfluxdbDispatcher"];
+
+    function InfluxdbData(dataDispatcher) {
+        return {
             restrict: 'EA',
-            scope:{
-                series: "=",
+            scope: {
+                type: "@",
+                data: "=",
             },
-            require: '^^rickshawChart',
             controller: controllerFn,
             controllerAs: 'vm',
-            bindToController: true,
-            link: linkFn,
         }
 
-        function controllerFn(scope){
+        function controllerFn(scope) {
             var vm = this;
 
-            scope.$watch('chart', function(newValue, oldValue){
-                init(newValue);
-            });
-
-            function init(chartCtrl){
-                vm.chart = chartCtrl;
-                console.log(vm.chart.name);
+            if (scope.type === "remoteType") {
+                configTypeRemote(scope, vm);
             }
-        }
 
-        function linkFn(scope, elem, attrs, chartCtrl){
-            scope.chart = chartCtrl;
+            function configTypeRemote(scope, ctrl) {
+                $scope.$watchCollection(scope.data, function (newVal, oldVal) {
+                    if (scope.data) init();
+                });
+
+                function init() {
+                    var registerObj = {
+                        onData: onData,
+                        measurements: getSetByKey(scope.data, "measurement"),
+                        tags: getSetByKey(scope.data, "tag"),
+                    }
+                    ctrl.influxdb_dispatcher_id = dataDispatcher.register(registerObj);
+                }
+
+                function onData(data){
+                    scope.chartDataUpdate = data;
+                }
+
+            }
+
+            function getSetByKey(list, key){
+                var sett = [];
+                if(list){
+                    list.forEach(function(el){
+                        if(sett.indexOf(el[key])<0)
+                            sett.push(el[key]);
+                    })
+                }
+                return sett;
+            }
         }
     }
 })();

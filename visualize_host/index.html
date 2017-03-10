@@ -18,6 +18,7 @@
     <script src="app/components/components.module.js"></script>
     <script src="app/components/chart/chart.module.js"></script>
     <script src="app/components/chart/rickshaw-chart.directive.js"></script>
+    <script src="app/components/chart/chart.simple.directive.js"></script>
     <script src="app/components/chart/data/data.module.js"></script>
     <script src="app/components/chart/data/data_mock.js"></script>
     <script src="app/components/chart/data/influxdb.directive.js"></script>
@@ -33,11 +34,12 @@
 </head>
 
 <body ng-app="smv">
-    <rickshaw-chart width=500 height=300 renderer="line">
-        <rickshaw-chart-legend>
-            <influxdb series="series"/>
-        </rickshaw-chart-legend>
-    </rickshaw-chart>
+    <!--
+    <influxdb-data type="remote" data="data" series-mask="0:1:2:3">
+        <rickshaw-chart></rickshaw-chart>
+    </influxdb-data>!-->
+
+    <chart-simple width=600 height=300></chart-simple>
 </body>
 
 </html>
