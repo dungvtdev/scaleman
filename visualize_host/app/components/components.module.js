@@ -2,5 +2,7 @@
     'use strict';
 
     angular
-        .module("smv.components", []);
+        .module("smv.components", [
+            "smv.components.chart"
+        ]);
 })();
