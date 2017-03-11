@@ -5,5 +5,7 @@
         .module("smv", [
             "smv.components",
             "smv.core",
+            "smv.monitoring",
+            "smv.utils",
         ]);
 })();

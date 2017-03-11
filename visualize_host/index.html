@@ -28,15 +28,22 @@
     <script src="app/core/data/influxdb/influxdb.module.js"></script>
     <script src="app/core/data/influxdb/influxdb.service.js"></script>
     <script src="app/core/data/influxdb/influxdb.dispatcher.service.js"></script>
+
+    <script src="app/monitoring/monitoring.module.js"></script>
+    <script src="app/monitoring/monitoring.controller.js"></script>
+    
+    <script src="app/utils/utils.module.js"></script>
+    <script src="app/utils/data.manipulation.js"></script>
     
     <script src="app/extend/RickshawTimeSeries.js"></script>
 
 </head>
 
 <body ng-app="smv">
+
     <chart-simple width=600 height=300></chart-simple>
 
-    <rickshaw-chart type="realtime" getData="getData(name)" name="" width=500 height=300>
+    <rickshaw-chart type="realtime" getData="vm.getData(name)" name="cpu" width=500 height=300>
 
     </rickshaw-chart>
 </body>

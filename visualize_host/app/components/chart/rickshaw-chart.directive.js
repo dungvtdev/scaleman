@@ -16,7 +16,7 @@
                 renderer: '@',
                 type: "@",
                 getData: "&",
-                name: '@'
+                names: '@'
             },
             template: ['<div></div>',
             ].join(""),
@@ -30,8 +30,8 @@
         }
 
         function realtimeTypeConfig(scope, element, attrs) {
-
-            scope.$watch(scope.getData({name: scope.name}), function(newVal, oldVal){
+            var names = scope.names.split(":");
+            scope.$watch(scope.getData({names: names}), function(newVal, oldVal){
                 if(newVal!==oldVal){
                     updateData(newVal);
                 }
