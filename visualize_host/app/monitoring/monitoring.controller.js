@@ -4,19 +4,20 @@
     angular.module('smv.monitoring.controller')
         .controller('MonitoringController', MonitoringController);
 
-    MonitoringController.$inject = ['DataManipulation'];
+    MonitoringController.$inject = ['DataManipulation', 'InfluxdbBatch'];
 
-    function MonitoringController(dd) {
+    function MonitoringController(dd, influxdbBatch) {
         var vm = this;
+        var influxdb = influxdbBatch();
 
         // dinh nghia cac series can hien thi
         vm.data =
             {
                 cpu: {
-                    measurement: cpu_usage_total,
+                    measurement: 'cpu_usage_total',
                     machine_id: 0,
                     tags: {
-                        container_name: "123",
+                        container_name: "/",
                     },
                     data: [],
                 }
@@ -28,6 +29,7 @@
         // id tra ve de dung sau, vi du unregister
         vm.influx_listener_id = registerDataInfo();
 
+        influxdb.tick();
 
         // call from visualize chart
         // names: array [] of names
@@ -55,7 +57,7 @@
                 data_meta[key]=dd.clone(vm.data[key], "data");
             });
 
-            var id = influxdb.register({
+            var id = influxdb.registrator.register({
                 data: data_meta,
                 onData: onData,
             })
@@ -66,4 +68,4 @@
     };
 
 
-});
+})();

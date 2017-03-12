@@ -25,9 +25,11 @@
     <script src="app/core/exception.handling.service.js"></script>
 
     <script src="app/core/data/data.module.js"></script>
-    <script src="app/core/data/influxdb/influxdb.module.js"></script>
-    <script src="app/core/data/influxdb/influxdb.service.js"></script>
-    <script src="app/core/data/influxdb/influxdb.dispatcher.service.js"></script>
+    <script src="app/core/data/datasource.batch.js"></script>
+
+    <script src="app/influxdb/influxdb.module.js"></script>
+    <script src="app/influxdb/influxdb.service.js"></script>
+    <script src="app/influxdb/influxdb.batch.service.js"></script>
 
     <script src="app/monitoring/monitoring.module.js"></script>
     <script src="app/monitoring/monitoring.controller.js"></script>
@@ -39,9 +41,12 @@
 
 </head>
 
-<body ng-app="smv">
+<body ng-app="smv" ng-controller="MonitoringController">
 
+<!--
     <chart-simple width=600 height=300></chart-simple>
+!-->
+    <h2>Graph monitoring</h2>
 
     <rickshaw-chart type="realtime" getData="vm.getData(name)" name="cpu" width=500 height=300>
 
