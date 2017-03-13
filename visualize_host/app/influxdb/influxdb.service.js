@@ -10,7 +10,6 @@
         var _def_setting = {
             epoch: "s",
             db: "cadvisor",
-            limit: undefined,
         }
         var _setting = _def_setting;
 
@@ -42,19 +41,20 @@
 
         }
 
-        function createUrl(measurement, tags, timeInterval) {
-            var base = getBaseUrl() + "/query?";
-            var db = "db=" + _setting.db;
-            var epoch = "epoch=" + _setting.epoch;
+        // function createUrl(measurement, tags, timeInterval) {
+        //     var base = getBaseUrl() + "/query?";
+        //     var db = "db=" + _setting.db;
+        //     var epoch = "epoch=" + _setting.epoch;
 
-            var q = "q=SELECT *"
-                + " FROM " + measurement
-                + ((_setting.limit) ? " LIMIT " + _setting.limit : "");
+        //     var q = "q=SELECT *"
+        //         + " FROM " + measurement
+        //         + timeInterval? " WHERE time >= "
+        //         + (_setting.limit ? " LIMIT " + _setting.limit : "");
             
-            var raw = base + db + "&" + epoch + "&" + q;
-            console.log(raw);
-            return encodeURI(raw);
-        }
+        //     var raw = base + db + "&" + epoch + "&" + q;
+        //     console.log(raw);
+        //     return encodeURI(raw);
+        // }
 
         // function createUrl(measurement, tags) {
         //     var base = getBaseUrl() + "/query?";

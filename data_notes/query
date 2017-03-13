@@ -1,0 +1,1 @@
+testing:8086/query?db=cadvisor&epoch=ms&q=SELECT value FROM "cpu_usage_total" WHERE time > now() - 1m GROUP BY container_name

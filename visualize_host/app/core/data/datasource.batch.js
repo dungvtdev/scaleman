@@ -54,11 +54,15 @@
                 console.log("Register");
                 console.log(_dummies);
 
+                this.dirty = true;
+
                 return new_id;
             }
 
             function unregisterFn(id) {
                 _dummies[id]=undefined;
+
+                this.dirty = true;
             }
 
             function onData(data){
@@ -71,12 +75,14 @@
             }
 
             function getAllMeta(){
-                return dd.keys(_dummies).map(function(key){
-                    return {
-                        id: key,
-                        meta: _dummies[key].data,
-                    }
+                var ls = [];
+                dd.keys(_dummies).forEach(function(key){
+                    var d = _dummies[key].data;
+                    dd.keys(d).forEach(function(key){
+                        ls.push(d[key]);
+                    })
                 });
+                return ls;
             }
         }
     }
