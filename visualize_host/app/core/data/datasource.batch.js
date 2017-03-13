@@ -26,9 +26,8 @@
              *    2 : {
              *        measurement: cpu_usage_total,
                       machine_id: 0,
-                      tags: {
-                         container_name: "123",
-                      },
+                      container_name: "123",
+                      
              *    }
              * }
              */
@@ -42,7 +41,7 @@
 
             var generate_id = (function (id) {
                 return function () {
-                    return id++;
+                    return (id++).toString();
                 }
             })(0);
 
@@ -75,14 +74,7 @@
             }
 
             function getAllMeta(){
-                var ls = [];
-                dd.keys(_dummies).forEach(function(key){
-                    var d = _dummies[key].data;
-                    dd.keys(d).forEach(function(key){
-                        ls.push(d[key]);
-                    })
-                });
-                return ls;
+                return _dummies;
             }
         }
     }

@@ -16,15 +16,15 @@
             return keys;
         }
 
-        function clone(obj, exclude_attrs){
+        function clone(obj, exclude_attrs) {
             var cloneObject = JSON.parse(JSON.stringify(obj));
-            if(exclude_attrs)
-                if(! Array.isArray(exclude_attrs))
-                    exclude_attrs = [exclude_attrs, ];
+            if (exclude_attrs)
+                if (!Array.isArray(exclude_attrs))
+                    exclude_attrs = [exclude_attrs,];
 
-                exclude_attrs.forEach(function(ea){
-                    cloneObject[ea] = undefined;
-                });
+            exclude_attrs.forEach(function (ea) {
+                cloneObject[ea] = undefined;
+            });
             return cloneObject;
         }
     }

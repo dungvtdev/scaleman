@@ -2,16 +2,15 @@
     angular.module('smv.influxdb')
         .factory("InfluxdbBatch", InfluxdbBatch);
 
-    InfluxdbBatch.$inject = ["CONFIG", 'DatasourceBatch', 'Influxdb', '$http', 'DataManipulation', 'HttpException', '$log'];
+    InfluxdbBatch.$inject = ['DatasourceBatch', 'Influxdb', '$http', 'DataManipulation', 'HttpException', '$log'];
 
-    function InfluxdbBatch(CONFIG, DatasourceBatch, influxService, $http, dd, HttpException, $log) {
+    function InfluxdbBatch(DatasourceBatch, influxService, $http, dd, HttpException, $log) {
         return function () {
             return new InfluxDataSource();
         }
 
         function InfluxDataSource() {
             this.tick = tick;
-            this.interval = CONFIG.visualize_interval || 1000;
             this.registrator = DatasourceBatch(this);
             this.queryContainerNames = queryContainerNames;
 
@@ -21,32 +20,37 @@
 
             // endpoint + database
             var machines = {
-                0: ["http:\/\/testing:8086", "cadvisor"],
+                "0": ["http:\/\/testing:8086", "cadvisor"],
             };
             // add data tu datasourcebatch
-            machines.addListener = function (measurementAndMachines) {
-                if (!measurementAndMachines) return;
-                if (!Array.isArray(measurementAndMachines)) {
-                    measurementAndMachines = [measurementAndMachines,];
-                }
+            machines.addListener = function (batch_id, meta_data) {
+                if (!meta_data) return;
+
                 if (!this.meta) this.meta = {};
                 var meta = this.meta;
                 var machine = this;
-                measurementAndMachines.forEach(function (mam) {
-                    if (!machine[mam.machine]) return;
-                    if (!meta[mam.machine]) meta[mam.machine] = [];
-                    if (meta[mam.machine].indexOf(mam.measurement) < 0)
-                        meta[mam.machine].push(mam.measurement);
-                })
+                var __meta_data = meta_data.data;
+                dd.keys(__meta_data).forEach(function (name) {
+                    var data = __meta_data[name];
+                    if (!machine[data.machine]) return;
+                    if (!meta[data.machine]) meta[data.machine] = {};
+                    if (!meta[data.machine][data.measurement])
+                        meta[data.machine][data.measurement] = {};
+                    if (!meta[data.machine][data.measurement][data.container_name])
+                        meta[data.machine][data.measurement][data.container_name] = []
+                    meta[data.machine][data.measurement][data.container_name].push([batch_id, name]);
+                });
             }
             machines.rebuild = function () {
                 var mc = this;
                 mc.meta = {};
 
                 var allMeta = registrator.getAllMeta();
-                allMeta.forEach(function (meta) {
-                    mc.addListener(meta);
+                dd.keys(allMeta).forEach(function (batch_id) {
+                    mc.addListener(batch_id, allMeta[batch_id]);
                 })
+
+                console.log(mc.meta);
             }
 
             function tick() {
@@ -56,46 +60,70 @@
                     machines.rebuild();
 
                     console.log(machines);
-
-                    queryData();
                 }
+
+                queryData(function (machine_id, data_response) {
+                    var __meta = machines.meta;
+                    var rs = {};
+                    var data = data_response.data;
+
+                    if (data['results'] && data['results'].length > 0) {
+                        var ls = data.results[0].series;
+                        var callbackMetas = registrator.getAllMeta();
+
+                        ls.forEach(function (serie) {
+                            var endpList = __meta[machine_id][serie.name][serie.tags.container_name];
+
+                            // 0: batch_id, 1: name
+                            endpList.forEach(function (ep) {
+                                if (!rs[ep[0]]) rs[ep[0]] = {};
+                                rs[ep[0]][ep[1]] = serie.values;
+                            })
+                        })
+
+                        // callback data
+                        dd.keys(rs).forEach(function (batch_id) {
+                            if (callbackMetas[batch_id].onData)
+                                callbackMetas[batch_id].onData(rs[batch_id]);
+                        });
+                    } else {
+                        $log.info("Data tick khong hop le tai (machine_id=" + machine_id + ")");
+                    }
+                });
             }
 
-            function queryData() {
+            function queryData(callback) {
                 if (!machines.meta) return;
 
                 dd.keys(machines.meta).forEach(function (machine_id) {
                     var measurements = machines.meta[machine_id];
 
-                    measurements.forEach(function (measure) {
-                        var url = getUrl(machine_id,
-                            "SELECT value FROM " + measure
-                            + " WHERE time > now() - 1m"
-                            + " GROUP BY container_name");
-                        console.log(url);
+                    var measure_str = dd.keys(measurements).join(",");
 
-                        url = encodeURI(url);
+                    var url = getUrl(machine_id,
+                        "SELECT value FROM " + measure_str
+                        + " WHERE time > now() - 1m"
+                        + " GROUP BY container_name");
+                    console.log(url);
 
-                        $http.get(url)
-                            .then(queryComplete)
-                            .catch(queryFailed);
+                    url = encodeURI(url);
 
-                        function queryComplete(data, status, headers, config) {
-                            console.log(data);
-                        }
-                    })
-
+                    $http.get(url)
+                        .then(function (data, status, headers, config) {
+                            callback(machine_id, data);
+                        })
+                        .catch(queryFailed);
                 });
             }
 
             function queryContainerNames(machine, measurements) {
-                if(!Array.isArray(measurements)) 
+                if (!Array.isArray(measurements))
                     measurements = [measurements,];
 
                 var url = getUrl(machine,
                     "SELECT value FROM "
-                        + measurements.join(",") 
-                        + " GROUP BY container_name LIMIT 1");
+                    + measurements.join(",")
+                    + " GROUP BY container_name LIMIT 1");
 
                 url = encodeURI(url);
 
@@ -104,15 +132,15 @@
                     .catch(queryFailed);
 
                 function queryComplete(data, status, headers, config) {
-                    if(data['data'] && data.data['results'] && data.data['results'].length > 0){
+                    if (data['data'] && data.data['results'] && data.data['results'].length > 0) {
                         var rs = {};
-                        data.data.results[0].series.forEach(function(d){
-                            if(!rs[d.name]) rs[d.name]=[];
+                        data.data.results[0].series.forEach(function (d) {
+                            if (!rs[d.name]) rs[d.name] = [];
                             rs[d.name].push(d.tags.container_name);
                         });
                         return rs;
-                    }else{
-                        $log.info("Wrong data at InfluxdbBatch.queryContainerNames("+machine+","+measurements+")");
+                    } else {
+                        $log.info("Wrong data at InfluxdbBatch.queryContainerNames(" + machine + "," + measurements + ")");
                     }
                 }
 
