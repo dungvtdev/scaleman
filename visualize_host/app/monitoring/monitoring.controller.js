@@ -31,13 +31,14 @@
         function init(container_names) {
             // build data
             var raw_data = [
-                new CPU_USAGE_TOTAL(),
+                CPU_USAGE_TOTAL,
+                TX_RX_BYTES,
             ]
 
             vm.data = {};
 
-            for(var i=0;i<raw_data.length;i++){
-                buildData(vm.data, raw_data[i]);
+            for (var i = 0; i < raw_data.length; i++) {
+                buildData(vm.data, new raw_data[i]());
             }
 
             // to listen to influxdb get data event
@@ -86,7 +87,10 @@
 
         // callback function when new data comming
         function onData(dataSeries) {
-            console.log(dataSeries);
+            dd.keys(dataSeries).forEach(function (name) {
+                vm.data[name].data = vm.data[name].parseFn(dataSeries[name]);
+            });
+            console.log(vm.data);
         }
 
         function registerDataInfo() {
@@ -99,6 +103,24 @@
         }
     };
 
+    function multiContainerParse(data) {
+        var rs = {};
+        for (var i = 0; i < data.length; i++) {
+            rs[data[i].container_name] = data[i].data;
+        }
+        return rs;
+    }
+
+    function multiMeasurementParse(data) {
+        var rs = {};
+        for (var i = 0; i < data.length; i++) {
+            if (data[i].container_name === this.define.container_names) {
+                rs[data[i].measurement] = data[i].data;
+            }
+        }
+        return rs;
+    }
+
     function CPU_USAGE_TOTAL() {
         this.name = "cpu_total";
         this.define = {
@@ -106,9 +128,27 @@
             measurement: "cpu_usage_total",
             container_names: [],
         }
-        this.parseData = function (data) {
+        this.parseData = multiContainerParse.bind(this);
+    }
 
+    function TX_RX_BYTES() {
+        this.name = "tx_rx_bytes";
+        this.define = {
+            machine_id: 0,
+            measurement: ["rx_bytes", "tx_bytes"],
+            container_names: "/",
         }
+        this.parseData = multiMeasurementParse.bind(this);
+    }
+
+    function CPU_SYSTEM_USER() {
+        this.name = "cpu_system_user";
+        this.define = {
+            machine_id: 0,
+            measurement: ["cpu_usage_system", "cpu_usage_user"],
+            container_names: "/",
+        }
+        this.parseData = multiMeasurementParse.bind(this);
     }
 
 

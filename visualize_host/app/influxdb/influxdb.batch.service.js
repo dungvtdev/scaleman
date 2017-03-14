@@ -55,6 +55,8 @@
                     return;
 
                 // dispatch data
+                var registeredData = DS.batch.getRegisteredData();
+                
                 var result = {};
                 var branch = parseTree[machine_id];
 
@@ -63,8 +65,8 @@
                     var s = series[i];
 
                     var info_list = branch[s.name];
-                    if(!info_list) continue;
-                    info_list.forEach(function(info){
+                    if (!info_list) continue;
+                    info_list.forEach(function (info) {
                         if (!info) return;
 
                         if (!result[info.batch_id]) {
@@ -74,13 +76,13 @@
                             result[info.batch_id][info.name] = [];
                         }
                         result[info.batch_id][info.name].push({
+                            measurement: s.name,
                             container_name: s.tags.container_name,
                             data: s.values,
                         })
                     });
                 }
 
-                var registeredData = DS.batch.getRegisteredData();
                 dd.keys(result).forEach(function (machine_id) {
                     registeredData[machine_id].onData(result[machine_id]);
                 });
@@ -93,15 +95,21 @@
                 var series_dict = data[batch_id].data;
                 dd.keys(series_dict).forEach(function (name) {
                     var measurement = series_dict[name].measurement;
+                    if (!Array.isArray(measurement)) measurement = [measurement,]
+
                     var machine_id = series_dict[name].machine_id;
 
                     if (!treeObj.hasOwnProperty(machine_id)) treeObj[machine_id] = {};
-                    if (!treeObj[machine_id].hasOwnProperty(measurement)) treeObj[machine_id][measurement] = [];
 
-                    treeObj[machine_id][measurement].push({
-                        batch_id: batch_id,
-                        name: name
-                    });
+                    for (var i = 0; i < measurement.length; i++) {
+                        var ms = measurement[i];
+                        if (!treeObj[machine_id].hasOwnProperty(ms)) treeObj[machine_id][ms] = [];
+
+                        treeObj[machine_id][ms].push({
+                            batch_id: batch_id,
+                            name: name
+                        });
+                    }
                 });
             });
 
