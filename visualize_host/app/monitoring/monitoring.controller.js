@@ -106,7 +106,7 @@
     function multiContainerParse(data) {
         var rs = {};
         for (var i = 0; i < data.length; i++) {
-            rs[data[i].container_name] = data[i].data;
+            rs[data[i].container_name] = arrayToXYObjects(data[i].data);
         }
         return rs;
     }
@@ -115,10 +115,16 @@
         var rs = {};
         for (var i = 0; i < data.length; i++) {
             if (data[i].container_name === this.define.container_names) {
-                rs[data[i].measurement] = data[i].data;
+                rs[data[i].measurement] = arrayToXYObjects(data[i].data);
             }
         }
         return rs;
+    }
+
+    function arrayToXYObjects(list) {
+        return list.map(function (it) {
+            return { x: it[0], y: it[1] };
+        })
     }
 
     function CPU_USAGE_TOTAL() {

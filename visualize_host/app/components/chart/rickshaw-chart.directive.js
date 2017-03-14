@@ -13,10 +13,8 @@
         var directive = {
             restrict: 'E',
             scope: {
-                renderer: '@',
-                type: "@",
                 getData: "&",
-                names: '@'
+                name: '@'
             },
             template: ['<div></div>',
             ].join(""),
