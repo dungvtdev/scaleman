@@ -10,9 +10,8 @@
  *  onData
  * }
  */
-    DatasourceBatch.$inject = ['DataManipulation']
 
-    function DatasourceBatch(dd) {
+    function DatasourceBatch() {
         return function (injectee) {
             if (!injectee.__dsbatch) {
                 injectee.__dsbatch = new dsbatch();
@@ -20,14 +19,18 @@
             return injectee.__dsbatch;
         }
 
+        var dd = SMVDataUtils;
+
         function dsbatch() {
             var _dummies = {}
-            this._dummies = _dummies;
+            var _dirty = false;
 
             this.register = registerFn;
             this.unregister = unregisterFn;
             this.onData = onData;
-            this.getAllMeta = getAllMeta;
+            this.getRegisteredData = getRegisteredData;
+            this.isDirty = isDirty;
+            this.setDirtyOff = setDirtyOff;
 
             var generate_id = (function (id) {
                 return function () {
@@ -43,7 +46,7 @@
                 console.log("Register");
                 console.log(_dummies);
 
-                this.dirty = true;
+                _dirty = true;
 
                 return new_id;
             }
@@ -51,7 +54,15 @@
             function unregisterFn(id) {
                 _dummies[id]=undefined;
 
-                this.dirty = true;
+                _dirty = true;
+            }
+
+            function isDirty(){
+                return _dirty;
+            }
+
+            function setDirtyOff(){
+                _dirty = false;
             }
 
             function onData(data){
@@ -63,7 +74,8 @@
                 });
             }
 
-            function getAllMeta(){
+
+            function getRegisteredData(){
                 return _dummies;
             }
         }

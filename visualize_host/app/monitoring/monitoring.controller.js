@@ -4,60 +4,82 @@
     angular.module('smv.monitoring.controller')
         .controller('MonitoringController', MonitoringController);
 
-    MonitoringController.$inject = ['CONFIG', 'DataManipulation', 'InfluxdbBatch', '$timeout'];
+    MonitoringController.$inject = ['CONFIG', 'InfluxdbBatch', '$timeout', '$http'];
 
-    function MonitoringController(CONFIG, dd, influxdbBatch, $timeout) {
+    function MonitoringController(CONFIG, influxdbBatch, $timeout, $http) {
+        var dd = SMVDataUtils;
+
         var vm = this;
-        var influxdb = influxdbBatch();
+        var influxdb = influxdbBatch.createInfluxDataSource();
         var interval = CONFIG.value("visualize_interval") || 1000;
 
-        // machine_id, measurement
-        var visualize_query_datas = {
-            "0": ['cpu_usage_total', 'cpu_usage_system'],
+        vm.data = {
+            "name": {
+                measurement: "",
+                machine_id: 0,
+                container_names: [],
+                parseFn: undefined,     // parse data khi co data moi
+                data: {}                // inject vao de get
+            },
         };
-
-        // all measurement in machine 0
-        influxdb.queryContainerNames(0, visualize_query_datas['0'])
-            .then(function (cns) {
-                init(cns);
-            })
-
-        vm.data = {};
-
         vm.getData = getData;
 
+        // process
+
+        init();
+
         function init(container_names) {
-            container_names['cpu_usage_total'].forEach(function (cn) {
-                var name = cn;
-                vm.data[name] = {
-                    measurement: 'cpu_usage_total',
-                    machine: 0,
-                    container_name: cn,
-                    data: [],
-                }
-            })
+            // build data
+            var raw_data = [
+                new CPU_USAGE_TOTAL(),
+            ]
+
+            vm.data = {};
+
+            for(var i=0;i<raw_data.length;i++){
+                buildData(vm.data, raw_data[i]);
+            }
 
             // to listen to influxdb get data event
             // id tra ve de dung sau, vi du unregister
             vm.influx_listener_id = registerDataInfo();
 
-            $timeout(function () {
-                tick();
-            }, interval);
+            tick();
+
+            // $timeout(function () {
+            //     tick();
+            // }, interval);
+
+            // $http.get(
+            //     encodeURI("http://testing:8086/query?db=cadvisor&epoch=s&q=SELECT value FROM cpu_usage_total WHERE time > now() - 1m GROUP BY container_name"))
+            //     .then(function(data){
+            //         console.log(data);
+            //     })
+            //     .catch(function(e){
+            //         console.log(e);
+            //     })
         }
 
         function tick() {
             influxdb.tick();
-            $timeout(tick, interval);
+            // $timeout(tick, interval);
+        }
+
+        function buildData(dataObject, addedData) {
+            dataObject[addedData.name] = {
+                measurement: addedData.define.measurement,
+                machine_id: addedData.define.machine_id,
+                container_names: addedData.define.container_names,
+                parseFn: addedData.parseData,
+                data: [],
+            }
         }
 
         // call from visualize chart
         // names: array [] of names
-        function getData(names) {
-            if (vm.data) {
-                return names.map(function (name) {
-                    return vm.data[name].data;
-                })
+        function getData(name) {
+            if (vm.data && vm.data[name]) {
+                return vm.data[name].data;
             }
             return undefined;
         }
@@ -68,15 +90,28 @@
         }
 
         function registerDataInfo() {
-            var id = influxdb.registrator.register({
+            var id = influxdb.batch.register({
                 data: vm.data,
                 onData: onData,
             })
 
             return id;
         }
-
     };
+
+    function CPU_USAGE_TOTAL() {
+        this.name = "cpu_total";
+        this.define = {
+            machine_id: 0,
+            measurement: "cpu_usage_total",
+            container_names: [],
+        }
+        this.parseData = function (data) {
+
+        }
+    }
+
+
 
 
 })();
