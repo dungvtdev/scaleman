@@ -41,14 +41,18 @@
 
 </head>
 
-<body ng-app="smv" ng-controller="MonitoringController">
+<body ng-app="smv" ng-controller="MonitoringController as vm">
 
 <!--
     <chart-simple width=600 height=300></chart-simple>
 !-->
     <h2>Graph monitoring</h2>
 
-    <rickshaw-chart type="realtime" getData="vm.getData(name)" name="cpu" width=500 height=300>
+    <h3>cpu_usage_system</h3>
+    <rickshaw-chart type="realtime" getData="vm.getData(name)" name="cpu_system" width=500 height=300>
+
+    <h3>rx</h3>
+    <rickshaw-chart type="realtime" getData="vm.getData(name)" name="rx" width=500 height=300>
 
     </rickshaw-chart>
 </body>

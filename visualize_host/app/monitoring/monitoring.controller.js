@@ -24,19 +24,6 @@
 
         vm.data = {};
 
-        // dinh nghia cac series can hien thi
-        // vm.data =
-        //     {
-        //         cpu: {
-        //             measurement: 'cpu_usage_total',
-        //             machine: 0,
-        //             tags: {
-        //                 container_name: "/",
-        //             },
-        //             data: [],
-        //         }
-        //     };
-
         vm.getData = getData;
 
         function init(container_names) {

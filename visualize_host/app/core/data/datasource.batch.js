@@ -21,16 +21,6 @@
         }
 
         function dsbatch() {
-            /** example
-             * {
-             *    2 : {
-             *        measurement: cpu_usage_total,
-                      machine_id: 0,
-                      container_name: "123",
-                      
-             *    }
-             * }
-             */
             var _dummies = {}
             this._dummies = _dummies;
 
