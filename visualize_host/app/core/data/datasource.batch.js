@@ -66,10 +66,10 @@
             }
 
             function onData(data){
-                dd.keys(data).forEach(function(key){
-                    if(_dummies[key]){
-                        if(_dummies[key].onData)
-                            _dummies[key].onData(data[key]);
+                dd.keys(data).forEach(function(batch_id){
+                    if(_dummies[batch_id]){
+                        if(_dummies[batch_id].onData)
+                            _dummies[batch_id].onData(data[batch_id]);
                     }
                 });
             }

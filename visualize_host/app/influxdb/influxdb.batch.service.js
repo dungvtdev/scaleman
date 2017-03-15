@@ -55,8 +55,8 @@
                     return;
 
                 // dispatch data
-                var registeredData = DS.batch.getRegisteredData();
-                
+                var batch_data = DS.batch.getRegisteredData();
+
                 var result = {};
                 var branch = parseTree[machine_id];
 
@@ -83,83 +83,88 @@
                     });
                 }
 
-                dd.keys(result).forEach(function (machine_id) {
-                    registeredData[machine_id].onData(result[machine_id]);
+                dispatchData(result, batch_data);
+            }
+
+            function dispatchData(data, batch_data) {
+                dd.keys(data).forEach(function (machine_id) {
+                    batch_data[machine_id].onData(data[machine_id]);
                 });
+            }
+
+            function buildIndexTree(data) {
+                var treeObj = {};
+                dd.keys(data).forEach(function (batch_id) {
+                    var series_dict = data[batch_id].data;
+                    dd.keys(series_dict).forEach(function (name) {
+                        var measurement = series_dict[name].measurement;
+                        if (!Array.isArray(measurement)) measurement = [measurement,]
+
+                        var machine_id = series_dict[name].machine_id;
+
+                        if (!treeObj.hasOwnProperty(machine_id)) treeObj[machine_id] = {};
+
+                        for (var i = 0; i < measurement.length; i++) {
+                            var ms = measurement[i];
+                            if (!treeObj[machine_id].hasOwnProperty(ms)) treeObj[machine_id][ms] = [];
+
+                            treeObj[machine_id][ms].push({
+                                batch_id: batch_id,
+                                name: name
+                            });
+                        }
+                    });
+                });
+
+                return treeObj;
+            }
+
+            function test() {
+                $http.get(
+                    encodeURI("http://testing:8086/query?db=cadvisor&epoch=s&q=SELECT value FROM cpu_usage_total WHERE time > now() - 1m GROUP BY container_name"))
+                    .then(function (data) {
+                        console.log(data);
+                    })
+                    .catch(function (e) {
+                        console.log(e);
+                    })
+            }
+
+            function queryData(machine_address, treeData, setting, callback) {
+                if (!treeData) return;
+
+                dd.keys(treeData).forEach(function (machine_id) {
+                    if (!machine_address[machine_id]) return;
+
+                    var machine_info = machine_address[machine_id];
+
+                    var measurements = treeData[machine_id];
+
+                    var measure_str = dd.keys(measurements).join(",");
+
+                    var url = getUrl(setting, machine_info[0], machine_info[1],
+                        "SELECT value FROM " + measure_str
+                        + " WHERE time > now() - 1m"
+                        + " GROUP BY container_name");
+                    console.log(url);
+
+                    url = encodeURI(url);
+
+                    $http.get(url)
+                        .then(function (data) {
+                            callback(machine_id, data.data);
+                        })
+                        .catch(function (e) {
+                            $log.error('XHR Failed for queryData. ' + e.data);
+                        })
+                });
+            }
+
+            function getUrl(setting, endpoint, db, query) {
+                return endpoint + "/query?db=" + db + setting + "&q=" + query;
             }
         }
 
-        function buildIndexTree(data) {
-            var treeObj = {};
-            dd.keys(data).forEach(function (batch_id) {
-                var series_dict = data[batch_id].data;
-                dd.keys(series_dict).forEach(function (name) {
-                    var measurement = series_dict[name].measurement;
-                    if (!Array.isArray(measurement)) measurement = [measurement,]
-
-                    var machine_id = series_dict[name].machine_id;
-
-                    if (!treeObj.hasOwnProperty(machine_id)) treeObj[machine_id] = {};
-
-                    for (var i = 0; i < measurement.length; i++) {
-                        var ms = measurement[i];
-                        if (!treeObj[machine_id].hasOwnProperty(ms)) treeObj[machine_id][ms] = [];
-
-                        treeObj[machine_id][ms].push({
-                            batch_id: batch_id,
-                            name: name
-                        });
-                    }
-                });
-            });
-
-            return treeObj;
-        }
-
-        function test() {
-            $http.get(
-                encodeURI("http://testing:8086/query?db=cadvisor&epoch=s&q=SELECT value FROM cpu_usage_total WHERE time > now() - 1m GROUP BY container_name"))
-                .then(function (data) {
-                    console.log(data);
-                })
-                .catch(function (e) {
-                    console.log(e);
-                })
-        }
-
-        function queryData(machine_address, treeData, setting, callback) {
-            if (!treeData) return;
-
-            dd.keys(treeData).forEach(function (machine_id) {
-                if (!machine_address[machine_id]) return;
-
-                var machine_info = machine_address[machine_id];
-
-                var measurements = treeData[machine_id];
-
-                var measure_str = dd.keys(measurements).join(",");
-
-                var url = getUrl(setting, machine_info[0], machine_info[1],
-                    "SELECT value FROM " + measure_str
-                    + " WHERE time > now() - 1m"
-                    + " GROUP BY container_name");
-                console.log(url);
-
-                url = encodeURI(url);
-
-                $http.get(url)
-                    .then(function (data) {
-                        callback(machine_id, data.data);
-                    })
-                    .catch(function (e) {
-                        logger.error('XHR Failed for queryData. ' + error.data);
-                    })
-            });
-        }
-
-        function getUrl(setting, endpoint, db, query) {
-            return endpoint + "/query?db=" + db + setting + "&q=" + query;
-        }
     }
 
     // function queryContainerNames(machine, measurements) {

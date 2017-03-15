@@ -5,16 +5,17 @@
         .module("smv.components.chart")
         .directive("rickshawChart", RickshawChart);
 
-/**
- * ham getData return array [object]
- *      name: [x,y]
- */
+    /**
+     * ham getData return array [object]
+     *      name: [x,y]
+     */
     function RickshawChart() {
         var directive = {
             restrict: 'E',
             scope: {
                 getData: "&",
-                name: '@'
+                name: '@',
+                type: "@",
             },
             template: ['<div></div>',
             ].join(""),
@@ -28,20 +29,15 @@
         }
 
         function realtimeTypeConfig(scope, element, attrs) {
-            var names = scope.names.split(":");
-            scope.$watch(scope.getData({names: names}), function(newVal, oldVal){
-                if(newVal!==oldVal){
+            scope.$watch(function () {
+                return scope.getData({ name: scope.name })
+            }, function (newVal, oldVal) {
+                if (newVal !== oldVal) {
                     updateData(newVal);
                 }
             });
 
             var graphEl = element.children()[0];
-
-            var timeInterval = 1000;
-
-            var initData = getData();
-            if(initData && initData.interval)
-                timeInterval = initData.interval;
 
             var maxDataPoints = attrs.maxDataPoints || 100;
 
@@ -56,7 +52,7 @@
             graph.render();
 
             function updateData(newData){
-                graph.series.addData(data);
+                graph.series.addData(newData);
                 graph.render();
             }
         }
