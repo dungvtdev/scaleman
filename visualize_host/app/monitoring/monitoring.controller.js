@@ -4,15 +4,22 @@
     angular.module('smv.monitoring.controller')
         .controller('MonitoringController', MonitoringController);
 
-    MonitoringController.$inject = ['CONFIG', 'InfluxdbBatch', '$timeout', '$http'];
+    MonitoringController.$inject = ['CONFIG', 'InfluxdbBatch', 'InfluxdbAntiJitterFactory', '$timeout', '$http'];
 
-    function MonitoringController(CONFIG, influxdbBatch, $timeout, $http) {
+    function MonitoringController(CONFIG, influxdbBatch, antiJitterFactory, $timeout, $http) {
         var dd = SMVDataUtils;
 
         var vm = this;
         var influxdb = influxdbBatch.createInfluxDataSource();
+
+        var antiJitter = antiJitterFactory();
+        antiJitter.setOnNeedUpdate(onNeedUpdate);
+
+        var _needUpdate = false;
+
         var interval = CONFIG.value("visualize_interval") || 1000;
 
+        // data define va cached khi update data
         vm.data = {
             "name": {
                 measurement: "",
@@ -22,11 +29,17 @@
                 data: {}                // inject vao de get
             },
         };
+
+        // data update chart
+        vm.tickData = {};
+
         vm.getData = getData;
 
         // process
 
-        init();
+        // init();
+
+        testAntiJitter(antiJitter);
 
         function init(container_names) {
             // build data
@@ -39,6 +52,11 @@
 
             for (var i = 0; i < raw_data.length; i++) {
                 buildData(vm.data, new raw_data[i]());
+
+                vm.tickData = {};
+                dd.keys(vm.data).forEach(function (name) {
+                    vm.tickData[name] = {};
+                })
             }
 
             // to listen to influxdb get data event
@@ -62,8 +80,11 @@
         }
 
         function tick() {
-            influxdb.tick();
-            // $timeout(tick, interval);
+
+        }
+
+        function onNeedUpdate() {
+            _needUpdate = true;
         }
 
         function buildData(dataObject, addedData) {
@@ -103,10 +124,47 @@
         }
     };
 
+    function testAntiJitter(antiJitter) {
+        console.log('test anti jitter');
+
+        antiJitter.setUtcTime(0);
+        antiJitter.setInterval(2);
+        antiJitter.setOnNeedUpdate(function () {
+            needUpdate = true;
+        });
+        var needUpdate = false;
+
+        var s = [[0, null],
+        [2, 12],
+        [4, 10],
+        [6, 11],
+        [8, null],
+        [10, 12],
+        [12, null],
+        [14, null]];
+
+        tick();
+
+        function tick() {
+            setTimeout(function () {
+                var data = antiJitter.processData(s);
+                antiJitter.tickTime();
+                if (!needUpdate) {
+                    console.log(data);
+                    setTimeout(tick, 200);
+                } else {
+                    console.log(s);
+                }
+            }, 200);
+        }
+
+    }
+
     function multiContainerParse(data) {
         var rs = {};
         for (var i = 0; i < data.length; i++) {
-            rs[data[i].container_name] = arrayToXYObjects(data[i].data);
+            // rs[data[i].container_name] = arrayToXYObjects(data[i].data);
+            rs[data[i].container_name] = data[i].data;
         }
         return rs;
     }
@@ -115,7 +173,8 @@
         var rs = {};
         for (var i = 0; i < data.length; i++) {
             if (data[i].container_name === this.define.container_names) {
-                rs[data[i].measurement] = arrayToXYObjects(data[i].data);
+                // rs[data[i].measurement] = arrayToXYObjects(data[i].data);
+                rs[data[i].measurement] = data[i].data;
             }
         }
         return rs;

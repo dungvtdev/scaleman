@@ -1,10 +1,24 @@
 Rickshaw.namespace('Rickshaw.Series.RealTimeSeries');
 
-Rickshaw.Series.RealTimeSeries = Rickshaw.Class.create(Rickshaw.Series.FixedDuration, {
+Rickshaw.Series.RealTimeSeries = Rickshaw.Class.create(Rickshaw.Series, {
     /**
-     * data [{name:[{x, y}]}]
+     * data [{name:[[x,y]]}]
      *      
      */
+    initialize: function (data, palette, options) {
+
+        options = options || {};
+
+        if (typeof (options.timeDuration) === 'undefined') {
+            throw new Error('RealTime series requires timeDuration');
+        }
+
+        this.palette = new Rickshaw.Color.Palette(palette);
+
+        if (data && (typeof (data) == "object") && Array.isArray(data)) {
+            data.forEach(function (item) { this.addItem(item) }, this);
+        }
+    },
 
     addData: function ($super, data) {
         // super
@@ -21,10 +35,10 @@ Rickshaw.Series.RealTimeSeries = Rickshaw.Class.create(Rickshaw.Series.FixedDura
             var dataItem = data[item.name] || [];
             var latest = item.data[item.data.length - 1];
             dataItem.forEach(function (el) {
-                if (!latest || el.x > latest.x) {
-                    // count++;
-                    item.data.push({ x: el.x, y: el.y })
-                }
+                // if (!latest || el.x > latest.x) {
+                // count++;
+                item.data.push({ x: el.x, y: el.y })
+                // }
             });
         });
 

@@ -28,10 +28,12 @@
 
     <script src="app/core/data/data.module.js"></script>
     <script src="app/core/data/datasource.batch.js"></script>
+    <script src="app/core/data/anti.series.jitter.service.js"></script>
 
     <script src="app/influxdb/influxdb.module.js"></script>
     <script src="app/influxdb/influxdb.service.js"></script>
     <script src="app/influxdb/influxdb.batch.service.js"></script>
+    <script src="app/influxdb/influxdb.anti.jitter.js"></script>
 
     <script src="app/monitoring/monitoring.module.js"></script>
     <script src="app/monitoring/monitoring.controller.js"></script>
@@ -48,12 +50,11 @@
 !-->
     <h2>Graph monitoring</h2>
 
-    <!-- toan bo container !-->
+    <!--
     <h3>cpu_usage_system</h3>
     <rickshaw-chart type="realTime" get-data="vm.getData(name)" name="cpu_total" width=500 height=300>
     </rickshaw-chart>
 
-    <!-- system vs user 
     <h3>cpu_system_user</h3>
     <rickshaw-chart getData="vm.getData(name)" name="cpu_system_user" width=500 height=300>
     </rickshaw-chart>
