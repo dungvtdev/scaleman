@@ -2,23 +2,25 @@
     angular.module('smv.influxdb')
         .factory("InfluxdbBatch", InfluxdbBatch);
 
-    InfluxdbBatch.$inject = ['DatasourceBatch', '$http', '$log'];
+    InfluxdbBatch.$inject = ['CONFIG', 'DatasourceBatch', '$http', '$log'];
 
     var dd = SMVDataUtils;
 
-    function InfluxdbBatch(BatchFactory, $http, $log) {
+    function InfluxdbBatch(CONFIG, BatchFactory, $http, $log) {
         return {
             createInfluxDataSource: createInfluxDataSource,
         }
 
         function createInfluxDataSource() {
-            return new InfluxDataSource(BatchFactory({}), $http, $log);
+            var interval = CONFIG.value("visualize_interval") || 1000;
+
+            return new InfluxDataSource(BatchFactory({}), interval, $http, $log);
         }
 
-        function InfluxDataSource(batch, $http, $log) {
+        function InfluxDataSource(batch, interval, $http, $log) {
             var DS = this;
 
-            DS.tick = tick;
+            DS.pullData = pullData;
             DS.batch = batch;
 
             var setting = "&epoch=s";
@@ -31,7 +33,7 @@
             // tree type tim dia chi register khi cap nhat lai data
             var parseTree = {};
 
-            function tick() {
+            function pullData() {
                 if (DS.batch.isDirty()) {
                     DS.batch.setDirtyOff();
 
@@ -143,9 +145,10 @@
                     var measure_str = dd.keys(measurements).join(",");
 
                     var url = getUrl(setting, machine_info[0], machine_info[1],
-                        "SELECT value FROM " + measure_str
+                        "SELECT mean(value) FROM " + measure_str
                         + " WHERE time > now() - 1m"
-                        + " GROUP BY container_name");
+                        + " GROUP BY container_name,time("
+                        +interval/1000+"s)");
                     console.log(url);
 
                     url = encodeURI(url);

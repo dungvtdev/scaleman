@@ -6,8 +6,9 @@
 
     MonitoringController.$inject = ['CONFIG', 'InfluxdbBatch', 'InfluxdbAntiJitterFactory', '$timeout', '$http'];
 
+    var dd = SMVDataUtils;
+
     function MonitoringController(CONFIG, influxdbBatch, antiJitterFactory, $timeout, $http) {
-        var dd = SMVDataUtils;
 
         var vm = this;
         var influxdb = influxdbBatch.createInfluxDataSource();
@@ -19,6 +20,12 @@
 
         var interval = CONFIG.value("visualize_interval") || 1000;
 
+        // build data
+        var raw_data = [
+            CPU_USAGE_TOTAL,
+            //TX_RX_BYTES,
+        ]
+
         // data define va cached khi update data
         vm.data = {
             "name": {
@@ -26,7 +33,9 @@
                 machine_id: 0,
                 container_names: [],
                 parseFn: undefined,     // parse data khi co data moi
-                data: {}                // inject vao de get
+                tickData: undefined,
+                data: {},                // inject vao de get
+                currentPoint: {},
             },
         };
 
@@ -37,33 +46,20 @@
 
         // process
 
-        // init();
+        run();
 
-        testAntiJitter(antiJitter);
+        // testAntiJitter(antiJitter);
 
-        function init(container_names) {
-            // build data
-            var raw_data = [
-                CPU_USAGE_TOTAL,
-                TX_RX_BYTES,
-            ]
-
+        function run() {
             vm.data = {};
 
             for (var i = 0; i < raw_data.length; i++) {
                 buildData(vm.data, new raw_data[i]());
-
-                vm.tickData = {};
-                dd.keys(vm.data).forEach(function (name) {
-                    vm.tickData[name] = {};
-                })
             }
 
             // to listen to influxdb get data event
             // id tra ve de dung sau, vi du unregister
             vm.influx_listener_id = registerDataInfo();
-
-            tick();
 
             // $timeout(function () {
             //     tick();
@@ -77,10 +73,34 @@
             //     .catch(function(e){
             //         console.log(e);
             //     })
+
+            _needUpdate = true;
+            tick();
         }
 
-        function tick() {
+        function tick(){
+            $timeout(tickFn, interval);
+        }
 
+        function tickFn() {
+            if (_needUpdate) {
+                _needUpdate = false;
+
+                influxdb.pullData();
+            }
+
+            //update tickdata
+            for (var name in vm.data) {
+                vm.data[name].currentPoint = vm.data[name].tickData(vm.data[name].data, antiJitter);
+                if(_needUpdate){
+                    tick();
+                    return;
+                }
+            }
+
+            broadcastTickEvent();
+
+            $timeout(tick, interval);
         }
 
         function onNeedUpdate() {
@@ -93,7 +113,9 @@
                 machine_id: addedData.define.machine_id,
                 container_names: addedData.define.container_names,
                 parseFn: addedData.parseData,
+                tickData: addedData.tickData,
                 data: [],
+                currentPoint:{},
             }
         }
 
@@ -101,7 +123,7 @@
         // names: array [] of names
         function getData(name) {
             if (vm.data && vm.data[name]) {
-                return vm.data[name].data;
+                return vm.data[name].currentPoint;
             }
             return undefined;
         }
@@ -112,6 +134,10 @@
                 vm.data[name].data = vm.data[name].parseFn(dataSeries[name]);
             });
             console.log(vm.data);
+        }
+
+        function broadcastTickEvent(){
+
         }
 
         function registerDataInfo() {
@@ -169,6 +195,14 @@
         return rs;
     }
 
+    function multiContainerTick(parsedData, antiJitter) {
+        var rs = {};
+        dd.keys(parsedData).forEach(function (container_name) {
+            rs[container_name] = antiJitter.processData(parsedData[container_name]);
+        });
+        return rs;
+    }
+
     function multiMeasurementParse(data) {
         var rs = {};
         for (var i = 0; i < data.length; i++) {
@@ -194,6 +228,7 @@
             container_names: [],
         }
         this.parseData = multiContainerParse.bind(this);
+        this.tickData = multiContainerTick.bind(this);
     }
 
     function TX_RX_BYTES() {

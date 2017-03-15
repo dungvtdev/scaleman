@@ -4,7 +4,7 @@
     angular.module('smv').constant("CONFIG", getConfig());
 
     var configData = {
-        visualize_interval: 3000,
+        visualize_interval: 2000,
     };
 
     function getConfig() {
