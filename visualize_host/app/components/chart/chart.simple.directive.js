@@ -4,9 +4,7 @@
     angular.module("smv.components.chart")
         .directive('chartSimple', ChartSimple);
 
-    ChartSimple.$inject = ["$interval"];
-
-    function ChartSimple($interval) {
+    function ChartSimple() {
         return {
             restrict: 'EA',
             template: '<div></div>',
@@ -25,7 +23,9 @@
                 element: graphEl,
                 width: attrs.width,
                 height: attrs.height,
-                series: Rickshaw.Series.RealTimeSeries.create([{name:"one"}], undefined, 50),
+                series: Rickshaw.Series.FixedDuration.create([{name:"one"}], undefined, {
+                    timeInterval
+                }),
             });
 
             graph.render();

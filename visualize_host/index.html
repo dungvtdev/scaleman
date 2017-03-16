@@ -23,6 +23,7 @@
     <script src="app/components/chart/chart.module.js"></script>
     <script src="app/components/chart/rickshaw-chart.directive.js"></script>
     <script src="app/components/chart/chart.simple.directive.js"></script>
+    <script src="app/components/chart/simple.table.js"></script>
 
     <script src="app/core/core.module.js"></script>
 
@@ -50,11 +51,14 @@
 !-->
     <h2>Graph monitoring</h2>
 
-    <!--
+    
     <h3>cpu_usage_system</h3>
-    <rickshaw-chart type="realTime" get-data="vm.getData(name)" name="cpu_total" width=500 height=300>
-    </rickshaw-chart>
+    <simple-table type="realTime" get-data="vm.getData(name)" interval=2 name="cpu_total" width=900 height=500>
+    </simple-table>
 
+    <rickshaw-chart type="realTime" get-data="vm.getData(name)" interval=2 name="cpu_total" width=900 height=500>
+    </rickshaw-chart>
+<!--
     <h3>cpu_system_user</h3>
     <rickshaw-chart getData="vm.getData(name)" name="cpu_system_user" width=500 height=300>
     </rickshaw-chart>

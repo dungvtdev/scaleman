@@ -1,24 +1,10 @@
 Rickshaw.namespace('Rickshaw.Series.RealTimeSeries');
 
-Rickshaw.Series.RealTimeSeries = Rickshaw.Class.create(Rickshaw.Series, {
+Rickshaw.Series.RealTimeSeries = Rickshaw.Class.create(Rickshaw.Series.FixedDuration, {
     /**
      * data [{name:[[x,y]]}]
      *      
      */
-    initialize: function (data, palette, options) {
-
-        options = options || {};
-
-        if (typeof (options.timeDuration) === 'undefined') {
-            throw new Error('RealTime series requires timeDuration');
-        }
-
-        this.palette = new Rickshaw.Color.Palette(palette);
-
-        if (data && (typeof (data) == "object") && Array.isArray(data)) {
-            data.forEach(function (item) { this.addItem(item) }, this);
-        }
-    },
 
     addData: function ($super, data) {
         // super

@@ -80,12 +80,88 @@
                         result[info.batch_id][info.name].push({
                             measurement: s.name,
                             container_name: s.tags.container_name,
-                            data: s.values,
+                            // data: s.values,
+                            data: dataAccumToPercent(s.values),
                         })
                     });
                 }
 
                 dispatchData(result, batch_data);
+            }
+
+            function dataAccumToPercent(data) {
+                if (!(data && data.length > 0)) return;
+
+                // fill all null
+                // for(var i =0;i<data.length;i++){
+                var i = 0;
+                while (i < data.length) {
+                    if (data[i][1]) {
+                        i++;
+                        continue;
+                    }
+                    if (i > 0 && data[i - 1][1]) {
+                        var prev = data[i - 1];
+                        for (var j = i + 1; j < data.length; j++) {
+                            if (data[j][1])
+                                break;
+                        }
+                        if (j == data.length) {
+                            data = data.slice(0, i);
+                            break;
+                        }
+
+                        var next = data[j];
+                        for (var k = i; k < j; k++) {
+                            data[k][1] = (next[1] - prev[1]) * (k - (i - 1)) / (j - (i - 1)) + prev[1];
+                        }
+                        i = j + 1;
+                    } else {  // i ==0
+                        var kk = i + 1;
+                        while (kk < data.length && !data[kk][1]) {
+                            kk++;
+                        }
+                        if (kk >= data.length - 1) {
+                            data = [];
+                            break;
+                        }
+                        prev = data[kk];
+                        kk++;
+                        while (kk < data.length && !data[kk][1]) {
+                            kk++;
+                        }
+                        if (kk >= data.length - 1) {
+                            data = [];
+                            break;
+                        }
+                        next = data[kk];
+                        data[i][1] = next[1] - prev[1] * (next[0] - prev[0]) / (prev[0] - data[i][0]);
+
+                        i++;
+                    }
+                }
+
+                if(data.length==0)
+                    return data;
+                
+                if (data.length == 1) {
+                    data[i][1] = 0;
+
+                } else {
+                    for (var i = 0; i < data.length - 1; i++) {
+                        data[i][1] = (data[i+1][1] - data[i][1]) / 2000000000;
+                    }
+                    if (data.length > 2) {
+                        var l = data.length;
+                        data[l - 1][1] = data[l - 3][1] + 2 * data[l - 2][1];
+                    } else {
+                        data[data.length - 1][1] = data[data.length - 2][1];
+                    }
+                }
+
+
+                return data;
+
             }
 
             function dispatchData(data, batch_data) {
@@ -148,7 +224,10 @@
                         "SELECT mean(value) FROM " + measure_str
                         + " WHERE time > now() - 1m"
                         + " GROUP BY container_name,time("
-                        +interval/1000+"s)");
+                        + interval / 1000 + "s)");
+                        // "SELECT value FROM " + measure_str
+                        // + " WHERE time > now() - 1m"
+                        // + " GROUP BY container_name");
                     console.log(url);
 
                     url = encodeURI(url);

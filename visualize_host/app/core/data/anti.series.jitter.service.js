@@ -29,8 +29,9 @@
             this._interval = 1000;
             this.setInterval = setInterval;
 
-            this._onNeedUpdate = undefined;
-            this.setOnNeedUpdate = setOnNeedUpdate;
+            this._needUpdate = false;
+            this.isNeedUpdate = isNeedUpdate;
+            this.notifUpdateJustCall = notifUpdateJustCall;
 
             this._utcTime = 0;
             this.setUtcTime = setUtcTime;
@@ -42,13 +43,19 @@
 
             this.processData = processData;
 
+            this.getRecommendTimeBase = getRecommendTimeBase;
+
 
             function setInterval(it) {
                 this._interval = it;
             }
 
-            function setOnNeedUpdate(func) {
-                this._onNeedUpdate = func;
+            function isNeedUpdate() {
+                return this._needUpdate;
+            }
+
+            function notifUpdateJustCall() {
+                this._needUpdate = false;
             }
 
             function getTimeOfPoint(point) {
@@ -69,6 +76,10 @@
 
             function tickTime() {
                 this._utcTime += this._interval;
+            }
+
+            function getRecommendTimeBase(firstlySeriesDict) {
+                return new Date().getTime() / 1000;
             }
 
             //TODO: xu ly truong hop time khong deu
@@ -113,8 +124,8 @@
                     var value = (first + next) / 2;
 
                     return this.createPoint(value);
-                }
 
+                }
                 return this.createPoint(this.getValueOfPoint(series[i]));
             }
 

@@ -14,9 +14,6 @@
         var influxdb = influxdbBatch.createInfluxDataSource();
 
         var antiJitter = antiJitterFactory();
-        antiJitter.setOnNeedUpdate(onNeedUpdate);
-
-        var _needUpdate = false;
 
         var interval = CONFIG.value("visualize_interval") || 1000;
 
@@ -36,6 +33,7 @@
                 tickData: undefined,
                 data: {},                // inject vao de get
                 currentPoint: {},
+                timeBase: 0,
             },
         };
 
@@ -74,37 +72,45 @@
             //         console.log(e);
             //     })
 
-            _needUpdate = true;
+            // tim timebase
+            influxdb.pullData();
+            for (var name in vm.data) {
+                var fn = vm.data[name].getAllSeriesArray;
+                var ls = fn(vm.data[name].data);
+
+                vm.data[name].timeBase = antiJitter.getRecommendTimeBase(ls);
+
+                antiJitter.setUtcTime(vm.data[name].timeBase);
+            }
             tick();
         }
 
-        function tick(){
+        function tick() {
             $timeout(tickFn, interval);
         }
 
         function tickFn() {
-            if (_needUpdate) {
-                _needUpdate = false;
+            //update tickdata
+            for (var name in vm.data) {
+                vm.data[name].currentPoint = vm.data[name].tickData(vm.data[name].data, antiJitter);
+                console.log(vm.data[name].currentPoint);
+                // if(_needUpdate){
+                //     tick();
+                //     return;
+                // }
+            }
+
+            if (antiJitter.isNeedUpdate) {
+                antiJitter.notifUpdateJustCall();
 
                 influxdb.pullData();
             }
 
-            //update tickdata
-            for (var name in vm.data) {
-                vm.data[name].currentPoint = vm.data[name].tickData(vm.data[name].data, antiJitter);
-                if(_needUpdate){
-                    tick();
-                    return;
-                }
-            }
+            // broadcastTickEvent();
 
-            broadcastTickEvent();
+            antiJitter.tickTime();
 
             $timeout(tick, interval);
-        }
-
-        function onNeedUpdate() {
-            _needUpdate = true;
         }
 
         function buildData(dataObject, addedData) {
@@ -114,8 +120,10 @@
                 container_names: addedData.define.container_names,
                 parseFn: addedData.parseData,
                 tickData: addedData.tickData,
+                getAllSeriesArray: addedData.getAllSeriesArray,
+
                 data: [],
-                currentPoint:{},
+                currentPoint: {},
             }
         }
 
@@ -136,7 +144,7 @@
             console.log(vm.data);
         }
 
-        function broadcastTickEvent(){
+        function broadcastTickEvent() {
 
         }
 
@@ -199,8 +207,17 @@
         var rs = {};
         dd.keys(parsedData).forEach(function (container_name) {
             rs[container_name] = antiJitter.processData(parsedData[container_name]);
+            // if (antiJitter.isNeedUpdate) {
+            //     console.log("update because " + container_name);
+            // }
         });
         return rs;
+    }
+
+    function multiContainerAllSeriesArray(parsedData) {
+        return dd.keys(parsedData).map(function (container_name) {
+            return parsedData[container_name];
+        })
     }
 
     function multiMeasurementParse(data) {
@@ -229,6 +246,7 @@
         }
         this.parseData = multiContainerParse.bind(this);
         this.tickData = multiContainerTick.bind(this);
+        this.getAllSeriesArray = multiContainerAllSeriesArray.bind(this);
     }
 
     function TX_RX_BYTES() {

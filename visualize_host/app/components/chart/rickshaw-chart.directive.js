@@ -16,8 +16,9 @@
                 getData: "&",
                 name: '@',
                 type: "@",
+                interval: "=",
             },
-            template: ['<div></div>',
+            template: ['<div></div><div></div>',
             ].join(""),
             link: linkFn
         };
@@ -30,30 +31,105 @@
 
         function realtimeTypeConfig(scope, element, attrs) {
             scope.$watch(function () {
-                return scope.getData({ name: scope.name })
+                var s = scope.getData({ name: scope.name })
+                return s;
             }, function (newVal, oldVal) {
                 if (newVal !== oldVal) {
                     updateData(newVal);
                 }
             });
 
-            var graphEl = element.children()[0];
+            var graphEl = element.children();
 
-            var maxDataPoints = attrs.maxDataPoints || 100;
+            var maxDataPoints = attrs.maxDataPoints || 40;
+            var interval = scope.interval;
 
-            var graph = new Rickshaw.Graph({
-                element: graphEl,
-                width: attrs.width,
-                height: attrs.height,
-                series: Rickshaw.Series.RealTimeSeries.create([{name:"default"}], undefined, maxDataPoints),
-                renderer: "area"
-            });
+            var palette = new Rickshaw.Color.Palette({ scheme: 'classic9' });
 
-            graph.render();
+            var graph = null;
 
-            function updateData(newData){
-                graph.series.addData(newData);
-                graph.render();
+            var templateGraph = createGraph();
+            templateGraph.render();
+
+            function createGraph(timeBase) {
+                clearGraph();
+
+                timeBase = timeBase || new Date().getTime() / 1000;
+
+                var graph = new Rickshaw.Graph({
+                    element: graphEl[0],
+                    width: attrs.width,
+                    height: attrs.height,
+                    stroke: true,
+                    // preserve: true,
+                    min: 0,
+                    // max: 100,
+                    renderer: "line",
+                    series: new Rickshaw.Series.FixedDuration([{ name: '/' }], undefined, {
+                        timeInterval: interval,
+                        maxDataPoints: maxDataPoints,
+                        timeBase: timeBase,
+                    })
+                });
+
+                new Rickshaw.Graph.HoverDetail({
+                    graph: graph,
+                });
+
+                // new Rickshaw.Graph.Legend({
+                //     graph: graph,
+                //     element: element.children()[1],
+                // });
+                var ticksTreatment = 'glow';
+                // var xAxis = new Rickshaw.Graph.Axis.Time({
+                //     graph: graph,
+                //     ticksTreatment: ticksTreatment,
+                //     timeFixture: new Rickshaw.Fixtures.Time.Local()
+                // });
+
+                // xAxis.render();
+
+                var yAxis = new Rickshaw.Graph.Axis.Y({
+                    graph: graph,
+                    tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+                    ticksTreatment: ticksTreatment
+                });
+
+                yAxis.render();
+
+
+
+                return graph;
+            }
+
+            function clearGraph() {
+                graphEl.html("");
+            }
+
+            function updateData(newData) {
+
+                if (!graph) {
+                    var max = 0;
+                    for (var name in newData) {
+                        var t = newData[name][0];
+                        if (t > max) max = t;
+                    }
+
+                    graph = createGraph(max);
+                }
+
+                var data = {};
+                var needUpdate = true;
+                for (var name in newData) {
+                    data[name] = newData[name][1];
+                    if (data[name] == undefined) needUpdate = false;
+                }
+
+                if (needUpdate) {
+                    graph.series.addData(data);
+                    graph.render();
+                }
+
             }
         }
     }
