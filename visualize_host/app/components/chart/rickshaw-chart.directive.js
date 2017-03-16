@@ -16,7 +16,8 @@
                 getData: "&",
                 name: '@',
                 type: "@",
-                interval: "=",
+                timeFilter: "=",
+                timeWidth: "=",
             },
             template: ['<div></div><div></div>',
             ].join(""),
@@ -46,40 +47,114 @@
 
             var palette = new Rickshaw.Color.Palette({ scheme: 'classic9' });
 
-            var graph = null;
+            // var seriesObject = [{
+            //     color: palette.color(),
+            //     data: [{x:0,y:0}],
+            //     name: "remove",
+            // }];
 
-            var templateGraph = createGraph();
-            templateGraph.render();
+            var seriesObject = [];
 
-            function createGraph(timeBase) {
-                clearGraph();
+            // seriesObject = [
+            //     {
+            //         color: palette.color(),
+            //         data: [{ x: 1, y: 10 }, { x: 10, y: 10 }, { x: 11, y: 10 }, { x: 12, y: 10 }, { x: 13, y: 10 }],
+            //         name: 'Moscow'
+            //     }
+            // ]
 
-                timeBase = timeBase || new Date().getTime() / 1000;
+            var graph = createGraph(seriesObject);
 
+            var palette = new Rickshaw.Color.Palette({ scheme: 'classic9' });
+
+            graph.render();
+
+            function updateData(newData) {
+                var timeWidth = scope.timeWidth;
+                var timeFilter = scope.timeFilter;
+
+                // if(seriesObject[0].name === "remove"){
+                //     seriesObject.unshift();
+                // }
+
+                // update data
+                var extend = [];
+                for (var container_name in newData) {
+                    var so = getSerieObjectByName(container_name);
+                    if (so) {
+                        so.data = formatSeries(timeWidth, timeFilter, so.data, newData[container_name]);
+                    } else {
+                        extend.push(container_name);
+                    }
+                }
+                extend.forEach(function (cn) {
+                    seriesObject.push({
+                        color: palette.color(),
+                        data: formatSeries(timeWidth, timeFilter, undefined, newData[cn]),
+                        name: cn,
+                    })
+                });
+
+                graph.render();
+            }
+
+            function formatSeries(time_width, time_filter, oldData, newData) {
+                if (newData.length == 0) return data;
+                var rs = [];
+
+                if (!oldData) {
+                    var time_first = (newData[0].x - (time_width - time_filter));
+                    rs.push({ x: time_first, y: 0 });
+                    rs.push({ x: newData[0].x - 1, y: 0 });
+                    newData.forEach(function (d) {
+                        rs.push(d);
+                    })
+                    return rs;
+                } else {
+                    var time_first = (newData[0].x - (time_width - time_filter));
+                    for (var i = 0; i < oldData.length; i++) {
+                        if (oldData[i].x >= time_first) break;
+                    }
+                    if (i < oldData.length)
+                        rs = oldData.slice(i, oldData.length);
+
+                    newData.forEach(function (d) {
+                        rs.push(d);
+                    })
+                    return rs;
+                }
+            }
+
+            function getSerieObjectByName(container_name) {
+                for (var i = 0; i < seriesObject.length; i++) {
+                    if (seriesObject[i].name === container_name) {
+                        return seriesObject[i];
+                    }
+                }
+                return undefined;
+            }
+
+            function createGraph(seriesObject) {
                 var graph = new Rickshaw.Graph({
                     element: graphEl[0],
                     width: attrs.width,
                     height: attrs.height,
                     stroke: true,
                     // preserve: true,
-                    min: 0,
                     // max: 100,
-                    renderer: "line",
-                    series: new Rickshaw.Series.FixedDuration([{ name: '/' }], undefined, {
-                        timeInterval: interval,
-                        maxDataPoints: maxDataPoints,
-                        timeBase: timeBase,
-                    })
+                    renderer: "area",
+                    series: seriesObject,
                 });
 
                 new Rickshaw.Graph.HoverDetail({
                     graph: graph,
                 });
 
-                // new Rickshaw.Graph.Legend({
-                //     graph: graph,
-                //     element: element.children()[1],
-                // });
+                var legend = new Rickshaw.Graph.Legend({
+                    graph: graph,
+                    element: element.children()[1],
+                });
+
                 var ticksTreatment = 'glow';
                 // var xAxis = new Rickshaw.Graph.Axis.Time({
                 //     graph: graph,
@@ -97,39 +172,7 @@
 
                 yAxis.render();
 
-
-
                 return graph;
-            }
-
-            function clearGraph() {
-                graphEl.html("");
-            }
-
-            function updateData(newData) {
-
-                if (!graph) {
-                    var max = 0;
-                    for (var name in newData) {
-                        var t = newData[name][0];
-                        if (t > max) max = t;
-                    }
-
-                    graph = createGraph(max);
-                }
-
-                var data = {};
-                var needUpdate = true;
-                for (var name in newData) {
-                    data[name] = newData[name][1];
-                    if (data[name] == undefined) needUpdate = false;
-                }
-
-                if (needUpdate) {
-                    graph.series.addData(data);
-                    graph.render();
-                }
-
             }
         }
     }

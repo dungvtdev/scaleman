@@ -16,7 +16,10 @@
         var antiJitter = antiJitterFactory();
 
         var interval = CONFIG.value("visualize_interval") || 1000;
+        var timeFilter = CONFIG.value("timeFilter") || 600;
 
+        vm.timeFilter = timeFilter;
+        
         // build data
         var raw_data = [
             CPU_USAGE_TOTAL,
@@ -73,15 +76,15 @@
             //     })
 
             // tim timebase
-            influxdb.pullData();
-            for (var name in vm.data) {
-                var fn = vm.data[name].getAllSeriesArray;
-                var ls = fn(vm.data[name].data);
+            // influxdb.pullData();
+            // for (var name in vm.data) {
+            //     var fn = vm.data[name].getAllSeriesArray;
+            //     var ls = fn(vm.data[name].data);
 
-                vm.data[name].timeBase = antiJitter.getRecommendTimeBase(ls);
+            //     vm.data[name].timeBase = antiJitter.getRecommendTimeBase(ls);
 
-                antiJitter.setUtcTime(vm.data[name].timeBase);
-            }
+            //     antiJitter.setUtcTime(vm.data[name].timeBase);
+            // }
             tick();
         }
 
@@ -91,24 +94,26 @@
 
         function tickFn() {
             //update tickdata
-            for (var name in vm.data) {
-                vm.data[name].currentPoint = vm.data[name].tickData(vm.data[name].data, antiJitter);
-                console.log(vm.data[name].currentPoint);
-                // if(_needUpdate){
-                //     tick();
-                //     return;
-                // }
-            }
+            // for (var name in vm.data) {
+            //     vm.data[name].currentPoint = vm.data[name].tickData(vm.data[name].data, antiJitter);
+            //     console.log(vm.data[name].currentPoint);
+            //     // if(_needUpdate){
+            //     //     tick();
+            //     //     return;
+            //     // }
+            // }
 
-            if (antiJitter.isNeedUpdate) {
-                antiJitter.notifUpdateJustCall();
+            // if (antiJitter.isNeedUpdate) {
+            //     antiJitter.notifUpdateJustCall();
 
-                influxdb.pullData();
-            }
+            //     influxdb.pullData();
+            // }
 
-            // broadcastTickEvent();
+            // // broadcastTickEvent();
 
-            antiJitter.tickTime();
+            // antiJitter.tickTime();
+
+            influxdb.pullData();
 
             $timeout(tick, interval);
         }
@@ -131,7 +136,7 @@
         // names: array [] of names
         function getData(name) {
             if (vm.data && vm.data[name]) {
-                return vm.data[name].currentPoint;
+                return vm.data[name].data;
             }
             return undefined;
         }
@@ -197,8 +202,8 @@
     function multiContainerParse(data) {
         var rs = {};
         for (var i = 0; i < data.length; i++) {
-            // rs[data[i].container_name] = arrayToXYObjects(data[i].data);
-            rs[data[i].container_name] = data[i].data;
+            rs[data[i].container_name] = arrayToXYObjects(data[i].data);
+            // rs[data[i].container_name] = data[i].data;
         }
         return rs;
     }
@@ -224,8 +229,8 @@
         var rs = {};
         for (var i = 0; i < data.length; i++) {
             if (data[i].container_name === this.define.container_names) {
-                // rs[data[i].measurement] = arrayToXYObjects(data[i].data);
-                rs[data[i].measurement] = data[i].data;
+                rs[data[i].measurement] = arrayToXYObjects(data[i].data);
+                // rs[data[i].measurement] = data[i].data;
             }
         }
         return rs;

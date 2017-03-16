@@ -5,6 +5,7 @@
 
     var configData = {
         visualize_interval: 2000,
+        timeFilter: 100,
     };
 
     function getConfig() {
