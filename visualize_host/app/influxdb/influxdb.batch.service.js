@@ -158,12 +158,16 @@
                         "SELECT derivative(\"value\", 5s)/1000000000 FROM \"" + measure_str +"\""+
                         " WHERE time > now() - " + timeFilter+
                         " GROUP BY \"container_name\" fill(null)");
+                        // "SELECT derivative(\"value\", 5s)/1000000000 FROM \"" + measure_str +"\""+
+                        // " WHERE time > now() - " + timeFilter+
+                        // " AND \"container_name\"=\"cpu_usage_system\" GROUP BY container_name fill(null)");
                     console.log(url);
 
                     url = encodeURI(url);
 
                     $http.get(url)
                         .then(function (data) {
+                            console.log(data.data);
                             callback(machine_id, data.data);
                         })
                         .catch(function (e) {

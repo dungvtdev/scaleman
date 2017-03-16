@@ -23,7 +23,7 @@
         // build data
         var raw_data = [
             CPU_USAGE_TOTAL,
-            //TX_RX_BYTES,
+            // TX_RX_BYTES,
         ]
 
         // data define va cached khi update data

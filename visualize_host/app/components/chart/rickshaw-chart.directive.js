@@ -63,11 +63,9 @@
             //     }
             // ]
 
-            var graph = createGraph(seriesObject);
+            var graph=undefined;
 
             var palette = new Rickshaw.Color.Palette({ scheme: 'classic9' });
-
-            graph.render();
 
             function updateData(newData) {
                 var timeWidth = scope.timeWidth;
@@ -96,6 +94,8 @@
                 });
 
                 graph.render();
+
+                legend.render();
             }
 
             function formatSeries(time_width, time_filter, oldData, newData) {
@@ -111,16 +111,23 @@
                     })
                     return rs;
                 } else {
-                    var time_first = (newData[0].x - (time_width - time_filter));
+                    var time_first = (newData[newData.length-1].x - time_width);
                     for (var i = 0; i < oldData.length; i++) {
                         if (oldData[i].x >= time_first) break;
                     }
                     if (i < oldData.length)
                         rs = oldData.slice(i, oldData.length);
-
+                    
+                    var con = oldData[oldData.length -1];
                     newData.forEach(function (d) {
-                        rs.push(d);
+                        if(d.x>con.x){
+                            rs.push(d);
+                        }
                     })
+
+                    if(rs[0].x>time_first)
+                        rs.unshift({x:time_first, y:0});
+
                     return rs;
                 }
             }
@@ -134,46 +141,42 @@
                 return undefined;
             }
 
-            function createGraph(seriesObject) {
-                var graph = new Rickshaw.Graph({
-                    element: graphEl[0],
-                    width: attrs.width,
-                    height: attrs.height,
-                    stroke: true,
-                    // preserve: true,
-                    // max: 100,
-                    renderer: "area",
-                    series: seriesObject,
-                });
+            graph = new Rickshaw.Graph({
+                element: graphEl[0],
+                width: attrs.width,
+                height: attrs.height,
+                stroke: true,
+                preserve: true,
+                // max: 100,
+                renderer: 'line',
+                series: seriesObject,
+            });
 
-                new Rickshaw.Graph.HoverDetail({
-                    graph: graph,
-                });
+            new Rickshaw.Graph.HoverDetail({
+                graph: graph,
+            });
 
-                var legend = new Rickshaw.Graph.Legend({
-                    graph: graph,
-                    element: element.children()[1],
-                });
+            var legend = new Rickshaw.Graph.Legend({
+                graph: graph,
+                element: element.children()[1],
+            });
 
-                var ticksTreatment = 'glow';
-                // var xAxis = new Rickshaw.Graph.Axis.Time({
-                //     graph: graph,
-                //     ticksTreatment: ticksTreatment,
-                //     timeFixture: new Rickshaw.Fixtures.Time.Local()
-                // });
+            var ticksTreatment = 'glow';
+            var xAxis = new Rickshaw.Graph.Axis.Time({
+                graph: graph,
+                ticksTreatment: ticksTreatment,
+                timeFixture: new Rickshaw.Fixtures.Time.Local()
+            });
 
-                // xAxis.render();
+            xAxis.render();
 
-                var yAxis = new Rickshaw.Graph.Axis.Y({
-                    graph: graph,
-                    tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
-                    ticksTreatment: ticksTreatment
-                });
+            var yAxis = new Rickshaw.Graph.Axis.Y({
+                graph: graph,
+                tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+                ticksTreatment: ticksTreatment
+            });
 
-                yAxis.render();
-
-                return graph;
-            }
+            yAxis.render();
         }
     }
 })();
